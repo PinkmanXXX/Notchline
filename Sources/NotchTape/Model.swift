@@ -31,7 +31,7 @@ struct TrackedCommand: Identifiable, Equatable, Codable {
 
     /// `~/Projects/app` instead of `/Users/name/Projects/app`.
     var shortCwd: String {
-        let home = NSHomeDirectory()
+        let home = Paths.home
         return cwd.hasPrefix(home) ? "~" + cwd.dropFirst(home.count) : cwd
     }
 

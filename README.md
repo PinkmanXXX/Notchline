@@ -164,8 +164,16 @@ A click on the closed island opens it pinned; the pin button in the panel pins a
 ```bash
 make run        # universal release build, assembled into NotchTape.app, launched
 make test       # unit tests: the wire format, production matching, ssh and kubeconfig parsing
+make e2e        # end to end: the real app, real zsh sessions and notch, in a throwaway home
 make dmg        # the same app, packed into NotchTape.dmg
 ```
+
+`make e2e` runs the debug app with `NOTCHTAPE_TEST_HOME` pointing at a temporary folder,
+so it has its own socket, `.zshrc`, `.claude` and kubeconfig and never touches yours,
+and drives it the way people do: zsh sessions with the hook, `notch`, Claude Code hook
+events, kubeconfig and AWS profile switches, hover, pin and outside clicks. Debug
+builds answer a `dump` request on the socket with their state, which is what the tests
+check.
 
 `swift build` then `.build/debug/NotchTape --snapshot <dir>` renders the island in
 each of its states to PNG with sample data — handy when the screen itself cannot be

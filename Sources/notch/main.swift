@@ -33,8 +33,10 @@ let separator = "\u{1F}"
 struct Options {
     var id: String?
     var title = ""
+    // $HOME first, like the zsh hook, so both always reach the same app
     var socket = ProcessInfo.processInfo.environment["NOTCH_SOCKET"]
-        ?? NSHomeDirectory() + "/Library/Application Support/NotchTape/notch.sock"
+        ?? (ProcessInfo.processInfo.environment["HOME"] ?? NSHomeDirectory())
+            + "/Library/Application Support/NotchTape/notch.sock"
     var positional: [String] = []
 }
 

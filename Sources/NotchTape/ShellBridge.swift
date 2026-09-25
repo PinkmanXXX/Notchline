@@ -27,6 +27,9 @@ final class ShellBridge: @unchecked Sendable {
         case exit(pid: Int32)
         case context(pid: Int32, ShellContext)
         case task(TaskUpdate)
+        /// Debug builds only: a question from the end-to-end tests, answered on
+        /// the same connection.
+        case debug([String])
     }
 
     struct TaskUpdate: Equatable {
@@ -45,11 +48,12 @@ final class ShellBridge: @unchecked Sendable {
     private var source: DispatchSourceRead?
     private let queue = DispatchQueue(label: "notchtape.shell-bridge")
 
-    func start(_ deliver: @escaping @MainActor (Message) -> Void) {
+    /// `deliver` returns a reply only for `.debug`; everything else is one-way.
+    func start(_ deliver: @escaping @MainActor (Message) -> String?) {
         queue.async { self.open(deliver) }
     }
 
-    private func open(_ deliver: @escaping @MainActor (Message) -> Void) {
+    private func open(_ deliver: @escaping @MainActor (Message) -> String?) {
         let path = Self.socketPath
         unlink(path)   // a stale socket from a previous run refuses to bind
 
@@ -80,12 +84,24 @@ final class ShellBridge: @unchecked Sendable {
         source = src
     }
 
-    private func acceptAll(_ deliver: @escaping @MainActor (Message) -> Void) {
+    private func acceptAll(_ deliver: @escaping @MainActor (Message) -> String?) {
         while true {
             let client = accept(listener, nil, nil)
             guard client >= 0 else { return }   // EWOULDBLOCK: drained
             if let text = readAll(client), let message = Self.parse(text) {
-                DispatchQueue.main.async { MainActor.assumeIsolated { deliver(message) } }
+                if case .debug = message {
+                    // the main thread never waits on this queue, so this cannot deadlock
+                    let reply = DispatchQueue.main.sync { MainActor.assumeIsolated { deliver(message) } } ?? ""
+                    let bytes = Array(reply.utf8)
+                    var sent = 0
+                    while sent < bytes.count {
+                        let n = bytes[sent...].withUnsafeBytes { write(client, $0.baseAddress, $0.count) }
+                        if n <= 0 { break }
+                        sent += n
+                    }
+                } else {
+                    DispatchQueue.main.async { _ = MainActor.assumeIsolated { deliver(message) } }
+                }
             }
             close(client)
         }
@@ -119,6 +135,9 @@ final class ShellBridge: @unchecked Sendable {
                                     exitCode: Int32(f[7]), title: f[8],
                                     detail: f[9...].joined(separator: "\u{1F}")))
         }
+        #if DEBUG
+        if f.count >= 3, f[0] == "1", f[1] == "debug" { return .debug(Array(f[2...])) }
+        #endif
         guard f.count >= 3, f[0] == "1", let pid = Int32(f[2]) else { return nil }
         switch f[1] {
         case "start" where f.count >= 7:
@@ -151,7 +170,7 @@ enum ShellIntegration {
         .appendingPathComponent("notchtape.zsh")
 
     static var rcURL: URL {
-        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".zshrc")
+        URL(fileURLWithPath: Paths.home).appendingPathComponent(".zshrc")
     }
 
     private static let marker = "# NotchTape: long-running commands in the notch"

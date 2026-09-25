@@ -4,7 +4,7 @@ BUNDLE  := $(APP).app
 BINDIR   = $(shell swift build -c release --arch arm64 --arch x86_64 --show-bin-path)
 BIN      = $(BINDIR)/$(APP)
 
-.PHONY: all build bundle icon dmg run test clean
+.PHONY: all build bundle icon dmg run test e2e clean
 
 all: dmg
 
@@ -43,8 +43,14 @@ dmg: bundle
 run: bundle
 	open $(BUNDLE)
 
+## unit tests
 test:
-	swift test
+	swift test --skip NotchTapeE2ETests
+
+## end to end: the debug app, real zsh sessions and `notch`, in a throwaway home
+e2e:
+	swift build
+	swift test --filter NotchTapeE2ETests
 
 clean:
 	rm -rf .build $(BUNDLE) dmg $(APP).dmg Resources/AppIcon.icns

@@ -63,7 +63,14 @@ final class AppState: ObservableObject {
 
     func start() {
         ShellIntegration.writeScript()
-        ShellBridge.shared.start { [weak self] message in self?.handle(message) }
+        ShellBridge.shared.start { [weak self] message in
+            guard let self else { return nil }
+            #if DEBUG
+            if case let .debug(args) = message { return self.debugReply(args) }
+            #endif
+            self.handle(message)
+            return nil
+        }
         if prefs.systemNotifications { requestNotificationPermission() }
     }
 
@@ -133,6 +140,9 @@ final class AppState: ObservableObject {
 
         case let .task(update):
             handleTask(update)
+
+        case .debug:
+            break   // answered in `start`, never applied
 
         case let .context(pid, ctx):
             shells.insert(pid)
@@ -510,6 +520,92 @@ final class AppState: ObservableObject {
     }
     #endif
 }
+
+#if DEBUG
+// MARK: - end-to-end hooks
+
+extension AppState {
+    /// The island's mode, worked out the same way RootView does.
+    var islandMode: String {
+        if toast != nil { return "toast" }
+        if expanded { return "panel" }
+        if stripHasContent { return "strip" }
+        return prefs.edge.isVertical ? "sliver" : "idle"
+    }
+
+    /// Answers the end-to-end tests: `dump` returns the state as JSON, the
+    /// others act and then answer with the state too.
+    func debugReply(_ args: [String]) -> String {
+        let controller = NotchController.shared
+        func point() -> CGPoint? {
+            guard args.count >= 3, let x = Double(args[1]), let y = Double(args[2]) else { return nil }
+            return CGPoint(x: x, y: y)
+        }
+        switch args.first ?? "" {
+        case "hover":
+            controller.pointerOverride = point()
+            controller.evaluateHover()
+        case "click":
+            controller.pointerOverride = point()
+            controller.clickedOutside()
+        case "pin":
+            controller.togglePin()
+        case "settings":
+            SettingsWindow.show()
+        case "closeSettings":
+            SettingsWindow.close()
+        case "guard":
+            evaluateGuard()
+        case "installHook", "removeHook", "installClaude", "removeClaude":
+            do {
+                switch args[0] {
+                case "installHook": try installHook()
+                case "removeHook": try removeHook()
+                case "installClaude": try AgentIntegration.installClaude()
+                default: try AgentIntegration.removeClaude()
+                }
+            } catch {
+                return #"{"error":"\#(error.localizedDescription)"}"#
+            }
+        default:
+            break
+        }
+        return debugDump()
+    }
+
+    func debugDump() -> String {
+        func cmd(_ c: TrackedCommand) -> [String: Any] {
+            ["id": c.id, "pid": c.pid, "command": c.command, "cwd": c.cwd, "tty": c.tty,
+             "exit": c.exitCode.map { Int($0) } ?? NSNull()]
+        }
+        let islands = NotchController.shared.islandFrames.map {
+            ["x": $0.minX, "y": $0.minY, "w": $0.width, "h": $0.height]
+        }
+        let object: [String: Any] = [
+            "mode": islandMode,
+            "expanded": expanded,
+            "pinned": pinned,
+            "connected": isConnected,
+            "hookInstalled": hookInstalled,
+            "shells": shells.count,
+            "settingsVisible": SettingsWindow.isVisible,
+            "toast": toast.map { ["title": $0.title, "subtitle": $0.subtitle, "kind": "\($0.kind)"] } ?? NSNull(),
+            "running": running.map(cmd),
+            "visibleRunning": visibleRunning.map(cmd),
+            "recent": recent.map(cmd),
+            "tasks": orderedTasks.map { ["id": $0.id, "title": $0.title, "detail": $0.detail,
+                                         "progress": $0.progress ?? NSNull(), "waiting": $0.waiting,
+                                         "pid": $0.pid] },
+            "prodAlert": prodAlert.map(\.text),
+            "env": env.map { ["kind": $0.kind.rawValue, "value": $0.value, "prod": $0.isProd] },
+            "islands": islands,
+            "claudeInstalled": AgentIntegration.claudeInstalled,
+        ]
+        let data = (try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])) ?? Data()
+        return String(decoding: data, as: UTF8.self)
+    }
+}
+#endif
 
 enum SettingsTab: Hashable {
     case general, terminal, prodGuard, agents, about

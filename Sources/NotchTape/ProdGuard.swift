@@ -77,7 +77,7 @@ enum EnvResolver {
         if let d = docker(ctx.dockerContext) { out.append(.init(kind: .docker, value: d)) }
         if let cmd = foreground, let host = sshHost(cmd) { out.append(.init(kind: .ssh, value: host)) }
         if !ctx.cwd.isEmpty {
-            let home = NSHomeDirectory()
+            let home = Paths.home
             let short = ctx.cwd.hasPrefix(home) ? "~" + ctx.cwd.dropFirst(home.count) : ctx.cwd
             out.append(.init(kind: .path, value: short))
         }
@@ -88,7 +88,7 @@ enum EnvResolver {
     /// rule kubectl follows when `KUBECONFIG` lists several files.
     private static func kubeContext(_ kubeconfig: String) -> String? {
         let files = kubeconfig.isEmpty
-            ? [NSHomeDirectory() + "/.kube/config"]
+            ? [Paths.home + "/.kube/config"]
             : kubeconfig.split(separator: ":").map { expand(String($0)) }
         for file in files {
             if let value = cached(file, parse: { text in
@@ -105,7 +105,7 @@ enum EnvResolver {
     /// The configuration name, and the project it points at when there is one:
     /// the project id is usually where "prod" lives.
     private static func gcloud(_ env: String) -> String? {
-        let base = NSHomeDirectory() + "/.config/gcloud"
+        let base = Paths.home + "/.config/gcloud"
         let name = !env.isEmpty ? env
             : cached(base + "/active_config", parse: { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
         guard let name, !name.isEmpty else { return nil }
@@ -131,7 +131,7 @@ enum EnvResolver {
     }
 
     private static func docker(_ env: String) -> String? {
-        let value = !env.isEmpty ? env : cached(NSHomeDirectory() + "/.docker/config.json", parse: { text in
+        let value = !env.isEmpty ? env : cached(Paths.home + "/.docker/config.json", parse: { text in
             guard let data = text.data(using: .utf8),
                   let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
             return obj["currentContext"] as? String
@@ -180,7 +180,7 @@ enum EnvResolver {
     }
 
     private static func expand(_ path: String) -> String {
-        path.hasPrefix("~") ? NSHomeDirectory() + path.dropFirst() : path
+        path.hasPrefix("~") ? Paths.home + path.dropFirst() : path
     }
 
     private static func unquote(_ s: Substring) -> String {

@@ -27,7 +27,12 @@ jobs:
         run: swift --version
 
       - name: Unit tests
-        run: swift test
+        run: make test
+
+      # the real app, real zsh sessions and `notch`, in a throwaway home;
+      # hosted macOS runners have the GUI session the app needs
+      - name: End-to-end tests
+        run: make e2e
 
       # ---- optional signing identity; skipped when the secrets are absent ----
       - name: Import signing certificate

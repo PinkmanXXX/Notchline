@@ -15,6 +15,9 @@ enum SettingsWindow {
         NSApp.activate()
     }
 
+    static var isVisible: Bool { window?.isVisible == true }
+    static func close() { window?.close() }
+
     private static func make() -> NSWindow {
         let w = NSWindow(contentRect: .init(x: 0, y: 0, width: 620, height: 560),
                          styleMask: [.titled, .closable, .miniaturizable],

@@ -7,7 +7,7 @@ enum AgentIntegration {
     // MARK: Claude Code
 
     static var claudeSettingsURL: URL {
-        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".claude/settings.json")
+        URL(fileURLWithPath: Paths.home).appendingPathComponent(".claude/settings.json")
     }
 
     /// The hook command, with the full path: hooks run without our PATH.
@@ -66,7 +66,7 @@ enum AgentIntegration {
     static var codexLine: String { "notify = [\"\(ShellIntegration.cliURL.path)\", \"agent\", \"codex\"]" }
 
     static var codexInstalled: Bool {
-        let url = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".codex/config.toml")
+        let url = URL(fileURLWithPath: Paths.home).appendingPathComponent(".codex/config.toml")
         return (try? String(contentsOf: url, encoding: .utf8))?.contains("\"agent\", \"codex\"") == true
     }
 

@@ -84,6 +84,11 @@ final class NotchController: NSObject {
     private var slots: [Slot] = []
     private var monitors: [Any] = []
     private var pendingCollapse: DispatchWorkItem?
+    /// Set by the end-to-end tests, which cannot move the real cursor.
+    var pointerOverride: CGPoint?
+    private var pointer: CGPoint { pointerOverride ?? NSEvent.mouseLocation }
+
+    var islandFrames: [CGRect] { slots.map(\.island) }
 
     // MARK: lifecycle
 
@@ -94,7 +99,8 @@ final class NotchController: NSObject {
             return Slot(panel: makePanel(on: screen, geometry: geometry), screen: screen, geometry: geometry)
         }
         layout()
-        if monitors.isEmpty { startMonitoring() }
+        // a test instance must not react to the person using the Mac meanwhile
+        if monitors.isEmpty && !Paths.isTest { startMonitoring() }
     }
 
     private func screens() -> [NSScreen] {
@@ -204,12 +210,12 @@ final class NotchController: NSObject {
     }
 
     private func cursorOverIsland(margin: CGFloat) -> Bool {
-        let p = NSEvent.mouseLocation
+        let p = pointer
         return slots.contains { $0.island.insetBy(dx: -margin, dy: -margin).contains(p) }
     }
 
-    fileprivate func evaluateHover() {
-        let p = NSEvent.mouseLocation
+    func evaluateHover() {
+        let p = pointer
         for slot in slots {
             let over = slot.island.insetBy(dx: -1, dy: -1).contains(p)
             if slot.panel.ignoresMouseEvents == over { slot.panel.ignoresMouseEvents = !over }
@@ -250,7 +256,7 @@ final class NotchController: NSObject {
 
     /// A pinned panel stays open until it is unpinned; a click elsewhere only
     /// closes one that is open because of hover.
-    fileprivate func clickedOutside() {
+    func clickedOutside() {
         let state = AppState.shared
         guard state.expanded, !state.pinned, !cursorOverIsland(margin: 0) else { return }
         collapse()
