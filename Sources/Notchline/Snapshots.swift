@@ -86,10 +86,12 @@ enum Snapshots {
     private static func render(_ view: some View, _ size: CGSize, _ name: String, _ dir: URL) {
         let framed = view
             .frame(width: size.width, height: size.height)
-            .background(Color(white: 0.42))
+            // NOTCHLINE_SNAPSHOT_CLEAR=1: no backdrop, for composing promo images
+            .background(ProcessInfo.processInfo.environment["NOTCHLINE_SNAPSHOT_CLEAR"] != nil
+                        ? Color.clear : Color(white: 0.42))
             .environment(\.colorScheme, .dark)
         let renderer = ImageRenderer(content: framed)
-        renderer.scale = 2
+        renderer.scale = Double(ProcessInfo.processInfo.environment["NOTCHLINE_SNAPSHOT_SCALE"] ?? "") ?? 2
         // the first pass measures the strip; the second draws the island at that size
         _ = renderer.nsImage
         RunLoop.main.run(until: Date().addingTimeInterval(0.05))
