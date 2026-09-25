@@ -478,7 +478,7 @@ private struct AboutTab: View {
             }
             Text("Notchline").font(.title.bold())
             Text(L10n.t("tagline")).foregroundStyle(.secondary)
-            Text(L10n.t("version", ["v": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.4.0"]))
+            Text(L10n.t("version", ["v": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"]))
                 .font(.caption).foregroundStyle(.secondary)
             Spacer()
         }
