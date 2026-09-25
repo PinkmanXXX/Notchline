@@ -210,6 +210,131 @@ final class NotchTapeE2ETests: XCTestCase {
         XCTAssertEqual(left["Stop"]?.count, 1)
     }
 
+    // MARK: more agents
+
+    private func readJSON(_ path: String) throws -> [String: Any] {
+        try JSONSerialization.jsonObject(with: Data(contentsOf: URL(fileURLWithPath: path))) as? [String: Any] ?? [:]
+    }
+
+    /// Runs an installed hook command the way an agent does: through a shell,
+    /// with the event on stdin. Returns what it printed.
+    @discardableResult
+    private func fire(_ command: String, _ event: [String: Any]) throws -> String {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/bin/sh")
+        p.arguments = ["-c", command]
+        p.environment = ["NOTCH_SOCKET": app.socket, "PATH": "/usr/bin:/bin"]
+        let input = Pipe(), output = Pipe()
+        p.standardInput = input
+        p.standardOutput = output
+        try p.run()
+        input.fileHandleForWriting.write(try JSONSerialization.data(withJSONObject: event))
+        try input.fileHandleForWriting.close()
+        let printed = output.fileHandleForReading.readDataToEndOfFile()
+        p.waitUntilExit()
+        XCTAssertEqual(p.terminationStatus, 0)
+        return String(decoding: printed, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func testGeminiCLIHooks() throws {
+        let path = app.home + "/.gemini/settings.json"
+        try FileManager.default.createDirectory(atPath: app.home + "/.gemini", withIntermediateDirectories: true)
+        try JSONSerialization.data(withJSONObject: ["theme": "Dracula"]).write(to: URL(fileURLWithPath: path))
+
+        XCTAssertEqual((app.debug("installAgent", "gemini")["agents"] as? [String: Bool])?["gemini"], true)
+        let settings = try readJSON(path)
+        XCTAssertEqual(settings["theme"] as? String, "Dracula")
+        let hooks = settings["hooks"] as? [String: [[String: Any]]] ?? [:]
+        XCTAssertEqual(Set(hooks.keys), ["BeforeAgent", "BeforeTool", "Notification", "AfterAgent", "SessionEnd"])
+        let inner = (hooks["BeforeTool"]?.first?["hooks"] as? [[String: Any]])?.first ?? [:]
+        XCTAssertEqual(inner["timeout"] as? Int, 5000, "Gemini counts milliseconds")
+        let command = inner["command"] as? String ?? ""
+
+        let base: [String: Any] = ["session_id": "g1", "cwd": "/Users/me/infra"]
+        XCTAssertEqual(try fire(command, base.merging(["hook_event_name": "BeforeAgent", "prompt": "plan it"]) { _, n in n }), "{}",
+                       "Gemini parses stdout as JSON")
+        try app.waitFor("the session") { ($0.list("tasks").first?["title"] as? String) == "Gemini CLI · infra" }
+        try fire(command, base.merging(["hook_event_name": "BeforeTool", "tool_name": "run_shell_command",
+                                        "tool_input": ["command": "terraform plan"]]) { _, n in n })
+        try app.waitFor("the tool") { ($0.list("tasks").first?["detail"] as? String) == "run_shell_command: terraform plan" }
+        try fire(command, base.merging(["hook_event_name": "Notification", "notification_type": "ToolPermission",
+                                        "message": "Allow terraform apply?"]) { _, n in n })
+        try app.waitFor("waiting") { ($0.list("tasks").first?["waiting"] as? Bool) == true }
+        try fire(command, base.merging(["hook_event_name": "AfterAgent"]) { _, n in n })
+        try app.waitFor("done") { $0.list("tasks").isEmpty && $0.toast?["kind"] as? String == "success" }
+
+        app.debug("removeAgent", "gemini")
+        let after = try readJSON(path)
+        XCTAssertNil(after["hooks"])
+        XCTAssertEqual(after["theme"] as? String, "Dracula")
+    }
+
+    func testCopilotInVSCodeGetsItsOwnHooksFile() throws {
+        let path = app.home + "/.copilot/hooks/notchtape.json"
+        XCTAssertEqual((app.debug("installAgent", "copilot")["agents"] as? [String: Bool])?["copilot"], true)
+        let hooks = try readJSON(path)["hooks"] as? [String: [[String: Any]]] ?? [:]
+        XCTAssertEqual(Set(hooks.keys), ["UserPromptSubmit", "PreToolUse", "Stop"])
+        let command = hooks["Stop"]?.first?["command"] as? String ?? ""
+
+        // VS Code may spell the fields in camelCase
+        let base: [String: Any] = ["sessionId": "v1", "cwd": "/Users/me/site"]
+        try fire(command, base.merging(["hookEventName": "UserPromptSubmit", "prompt": "add dark mode"]) { _, n in n })
+        try app.waitFor("the session") { ($0.list("tasks").first?["title"] as? String) == "Copilot · site" }
+        try fire(command, base.merging(["hookEventName": "PreToolUse", "toolName": "editFiles",
+                                        "toolInput": ["filePath": "src/theme.css"]]) { _, n in n })
+        try app.waitFor("the tool") { ($0.list("tasks").first?["detail"] as? String) == "editFiles: src/theme.css" }
+        XCTAssertEqual(try fire(command, base.merging(["hookEventName": "Stop"]) { _, n in n }), "{}")
+        try app.waitFor("done") { $0.list("tasks").isEmpty }
+
+        app.debug("removeAgent", "copilot")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: path))
+    }
+
+    /// Cursor's blocking hooks deny on an empty answer; only non-blocking ones may be ours.
+    func testCursorUsesNonBlockingHooksOnly() throws {
+        let path = app.home + "/.cursor/hooks.json"
+        try FileManager.default.createDirectory(atPath: app.home + "/.cursor", withIntermediateDirectories: true)
+        let mine: [String: Any] = ["version": 1, "hooks": ["beforeShellExecution": [["command": "./audit.sh"]]]]
+        try JSONSerialization.data(withJSONObject: mine).write(to: URL(fileURLWithPath: path))
+
+        app.debug("installAgent", "cursor")
+        let config = try readJSON(path)
+        XCTAssertEqual(config["version"] as? Int, 1)
+        let hooks = config["hooks"] as? [String: [[String: Any]]] ?? [:]
+        XCTAssertEqual(Set(hooks.keys), ["beforeShellExecution", "postToolUse", "stop", "sessionEnd"])
+        XCTAssertEqual(hooks["beforeShellExecution"]?.count, 1, "the user's own blocking hook, untouched and alone")
+        let command = hooks["stop"]?.first?["command"] as? String ?? ""
+
+        let base: [String: Any] = ["conversation_id": "c1", "workspace_roots": ["/Users/me/mobile"]]
+        try fire(command, base.merging(["hook_event_name": "postToolUse", "tool_name": "Shell",
+                                        "tool_input": ["command": "pod install"]]) { _, n in n })
+        try app.waitFor("the session") {
+            ($0.list("tasks").first?["title"] as? String) == "Cursor · mobile"
+                && ($0.list("tasks").first?["detail"] as? String) == "Shell: pod install"
+        }
+        XCTAssertEqual(try fire(command, base.merging(["hook_event_name": "stop", "status": "completed"]) { _, n in n }), "{}")
+        try app.waitFor("done") { $0.list("tasks").isEmpty }
+
+        app.debug("removeAgent", "cursor")
+        let after = try readJSON(path)["hooks"] as? [String: Any] ?? [:]
+        XCTAssertEqual(Array(after.keys), ["beforeShellExecution"])
+    }
+
+    func testClaudeHookStaysSilent() throws {
+        app.debug("installAgent", "claude")
+        let hooks = try readJSON(app.home + "/.claude/settings.json")["hooks"] as? [String: [[String: Any]]] ?? [:]
+        let command = ((hooks["UserPromptSubmit"]?.first?["hooks"] as? [[String: Any]])?.first?["command"] as? String) ?? ""
+        let printed = try fire(command, ["hook_event_name": "UserPromptSubmit", "session_id": "q", "cwd": "/x", "prompt": "hi"])
+        XCTAssertEqual(printed, "", "Claude adds UserPromptSubmit output to the conversation")
+    }
+
+    func testAiderNotificationsCommand() throws {
+        try app.notch(["agent", "aider"])
+        let s = try app.waitFor("the toast") { $0.toast?["kind"] as? String == "success" }
+        XCTAssertTrue((s.toast?["subtitle"] as? String ?? "").hasPrefix("Aider · "))
+        XCTAssertTrue(s.commands("recent").isEmpty, "agent turns stay out of the history")
+    }
+
     func testCodexTurnComplete() throws {
         let event = #"{"type":"agent-turn-complete","last-assistant-message":"Tests pass","cwd":"/Users/me/api"}"#
         try app.notch(["agent", "codex", event])

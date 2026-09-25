@@ -14,6 +14,14 @@ enum L10n {
 
     private static let table: [Lang: [String: String]] = [
         .en: [
+            "agentHint.claude": "Hooks for prompts, tool calls, permission requests and the end of each turn, next to your own. The file is rewritten with sorted keys; the original is kept as settings.json.notchtape-backup.",
+            "agentHint.gemini": "The same events through Gemini CLI hooks: BeforeAgent, BeforeTool, Notification, AfterAgent. Your settings.json keeps its other keys; a backup is left beside it.",
+            "agentHint.copilot": "Agent mode in VS Code: a hooks file of its own in ~/.copilot/hooks, nothing else is touched. Hooks are a VS Code preview and on by default (chat.useHooks).",
+            "agentHint.cursor": "Only Cursor's non-blocking hooks — tool calls, stop, session end — so NotchTape can never allow or deny anything the agent does. Cursor has no \"waiting for you\" hook.",
+            "agentHint.codex": "Paste into ~/.codex/config.toml. Codex calls it when a turn completes.",
+            "agentHint.aider": "Paste into ~/.aider.conf.yml. Aider runs it when a reply is done and it waits for you.",
+            "vscode": "VS Code",
+            "vscodeHint": "The terminal inside VS Code already works: it runs your zsh, so commands there show up like anywhere else, and a click brings VS Code forward. For its Copilot agent, connect GitHub Copilot above.",
             "task": "Task", "tasks": "Tasks", "waitingForYou": "Waiting for you", "waitingShort": "your turn",
             "keepHistory": "Keep recent commands between launches",
             "keepHistoryHint": "In history.json in the app's folder, readable by you only.",
@@ -21,7 +29,7 @@ enum L10n {
             "copyPath": "Copy path",
             "cliHint": "On PATH in every zsh with the hook; elsewhere use the full path. With the app closed it does nothing and never fails a script.",
             "agents": "Agents",
-            "agentsIntro": "Coding agents in the island: working, waiting for you, done. A permission prompt or a question turns amber with a toast.",
+            "agentsIntro": "Coding agents in the island: working, waiting for you, done. A permission prompt or a question turns amber with a toast. Each one is wired through the notch command.",
             "agentConnected": "Connected", "agentNotConnected": "Not connected", "connectAgent": "Connect",
             "claudeHint": "Adds hooks for prompts, tool calls, notifications and stops next to your own. The file is rewritten with sorted keys; the original is kept as settings.json.notchtape-backup.",
             "codexHint": "Paste this line into ~/.codex/config.toml. Codex calls it at the end of each turn.",
@@ -89,6 +97,14 @@ enum L10n {
             "ignoreHint": "Programs that run for as long as you use them. First word of the command, comma-separated."
         ],
         .ru: [
+            "agentHint.claude": "Хуки на промпт, вызовы инструментов, запросы разрешений и конец хода — рядом с вашими. Файл перезаписывается с отсортированными ключами; оригинал сохраняется как settings.json.notchtape-backup.",
+            "agentHint.gemini": "Те же события через хуки Gemini CLI: BeforeAgent, BeforeTool, Notification, AfterAgent. Остальные ключи settings.json остаются; рядом сохраняется копия.",
+            "agentHint.copilot": "Режим агента в VS Code: отдельный файл хуков в ~/.copilot/hooks, больше ничего не трогается. Хуки в VS Code — preview-функция и включены по умолчанию (chat.useHooks).",
+            "agentHint.cursor": "Только неблокирующие хуки Cursor — вызовы инструментов, остановка, конец сессии, — поэтому NotchTape никогда не разрешает и не запрещает агенту действия. Хука «ждёт вас» у Cursor нет.",
+            "agentHint.codex": "Вставьте в ~/.codex/config.toml. Codex вызывает это в конце каждого хода.",
+            "agentHint.aider": "Вставьте в ~/.aider.conf.yml. Aider вызывает это, когда ответ готов и он ждёт вас.",
+            "vscode": "VS Code",
+            "vscodeHint": "Терминал внутри VS Code уже работает: там запускается ваша zsh, поэтому команды из него видны так же, как из любого другого, а клик выводит VS Code вперёд. Для агента Copilot подключите GitHub Copilot выше.",
             "task": "Задача", "tasks": "Задачи", "waitingForYou": "Ждёт вас", "waitingShort": "ваш ход",
             "keepHistory": "Сохранять недавние команды между запусками",
             "keepHistoryHint": "В history.json в папке приложения, доступен только вам.",
@@ -164,6 +180,14 @@ enum L10n {
             "ignoreHint": "Программы, которые работают, пока вы ими пользуетесь. Первое слово команды, через запятую."
         ],
         .zh: [
+            "agentHint.claude": "为提示、工具调用、权限请求和每轮结束添加钩子，与你已有的钩子并存。文件会按键排序重写，原文件保存为 settings.json.notchtape-backup。",
+            "agentHint.gemini": "通过 Gemini CLI 钩子接收相同事件：BeforeAgent、BeforeTool、Notification、AfterAgent。settings.json 的其他键保持不变，并在旁边保留备份。",
+            "agentHint.copilot": "VS Code 中的智能体模式：在 ~/.copilot/hooks 中使用独立的钩子文件，不改动其他内容。钩子是 VS Code 预览功能，默认开启（chat.useHooks）。",
+            "agentHint.cursor": "只使用 Cursor 的非阻塞钩子——工具调用、停止、会话结束——因此 NotchTape 永远不会允许或拒绝智能体的任何操作。Cursor 没有“等待你”的钩子。",
+            "agentHint.codex": "粘贴到 ~/.codex/config.toml。Codex 在每轮结束时调用。",
+            "agentHint.aider": "粘贴到 ~/.aider.conf.yml。Aider 在回复完成、等待你时调用。",
+            "vscode": "VS Code",
+            "vscodeHint": "VS Code 内置终端已经可用：它运行你的 zsh，因此其中的命令会像其他地方一样显示，点击会把 VS Code 切到前台。若要接入其 Copilot 智能体，请在上方连接 GitHub Copilot。",
             "task": "任务", "tasks": "任务", "waitingForYou": "等待你的操作", "waitingShort": "轮到你",
             "keepHistory": "在重启之间保留最近的命令",
             "keepHistoryHint": "保存在应用目录的 history.json 中，仅你可读。",

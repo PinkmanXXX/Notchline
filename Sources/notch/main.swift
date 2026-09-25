@@ -17,8 +17,8 @@ usage: notch <command> [arguments] [options]
   notch fail ["Rollback"]         finish with a red toast
   notch clear                     remove the task without a toast
   notch run <command> [args…]     run a command and report how it ended
-  notch agent claude              a Claude Code hook: reads the event on stdin
-  notch agent codex <json>        a Codex `notify` program
+  notch agent <name>              an agent hook: claude, gemini, copilot, cursor,
+                                  codex (event as argument) or aider
 
 options
   --id <name>      the task to update. Defaults to the calling process,
@@ -217,54 +217,88 @@ func clip(_ text: String, _ limit: Int = 60) -> String {
     return flat.count > limit ? String(flat.prefix(limit - 1)) + "…" : flat
 }
 
+/// What an agent's event means for the island.
+enum Step {
+    case start(String), status(String), wait(String), done(String), clear, nothing
+}
+
 func agent(_ which: String, _ argument: String, socket: String) {
-    let (pid, tty) = agentProcess()
-    switch which {
-    case "claude":
-        // a Claude Code hook: the event arrives as JSON on stdin
-        let input = FileHandle.standardInput.readDataToEndOfFile()
-        guard let event = (try? JSONSerialization.jsonObject(with: input)) as? [String: Any] else { exit(0) }
-        let session = event["session_id"] as? String ?? String(pid)
-        let id = "claude-" + session
-        let cwd = event["cwd"] as? String ?? ""
-        let title = "Claude Code · " + (cwd as NSString).lastPathComponent
-        switch event["hook_event_name"] as? String ?? "" {
-        case "UserPromptSubmit":
-            task("start", id: id, pid: pid, tty: tty, title: title,
-                 detail: clip(event["prompt"] as? String ?? ""), socket: socket)
-        case "PreToolUse":
-            let tool = event["tool_name"] as? String ?? ""
-            let input = event["tool_input"] as? [String: Any] ?? [:]
-            let what = input["command"] as? String ?? input["file_path"] as? String
-                ?? input["pattern"] as? String ?? ""
-            task("status", id: id, pid: pid, tty: tty, title: title,
-                 detail: clip(what.isEmpty ? tool : tool + ": " + what), socket: socket)
-        case "Notification":
-            task("wait", id: id, pid: pid, tty: tty, title: title,
-                 detail: clip(event["message"] as? String ?? ""), socket: socket)
-        case "Stop":
-            task("done", id: id, pid: pid, tty: tty, code: 0, title: title, socket: socket)
-        case "SessionEnd":
-            task("clear", id: id, pid: pid, tty: tty, title: title, socket: socket)
-        default:
-            break
-        }
-        // a hook's stdout can end up in the conversation; say nothing
-        exit(0)
-
-    case "codex":
-        // Codex's `notify` program gets the event as its last argument
-        guard let data = argument.data(using: .utf8),
-              let event = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
-              event["type"] as? String == "agent-turn-complete" else { exit(0) }
-        let cwd = event["cwd"] as? String ?? FileManager.default.currentDirectoryPath
-        let title = "Codex · " + (cwd as NSString).lastPathComponent
-        task("done", id: "codex-\(pid)", pid: pid, tty: tty, code: 0, title: title,
-             detail: clip(event["last-assistant-message"] as? String ?? ""), socket: socket)
-        exit(0)
-
-    default:
-        FileHandle.standardError.write(Data("notch: agent must be claude or codex\n".utf8))
+    // local, not a global: top-level code in main.swift runs in order, and this
+    // function is called from above where a global would be initialised
+    let agentNames = ["claude": "Claude Code", "gemini": "Gemini CLI", "copilot": "Copilot",
+                      "cursor": "Cursor", "codex": "Codex", "aider": "Aider"]
+    guard let name = agentNames[which] else {
+        FileHandle.standardError.write(Data("notch: agent must be one of \(agentNames.keys.sorted().joined(separator: ", "))\n".utf8))
         exit(64)
     }
+    let (pid, tty) = agentProcess()
+
+    // hooks bring the event as JSON on stdin, Codex as its last argument, Aider not at all
+    var event: [String: Any] = [:]
+    switch which {
+    case "codex":
+        event = (try? JSONSerialization.jsonObject(with: Data(argument.utf8))) as? [String: Any] ?? [:]
+    case "aider":
+        break
+    default:
+        let input = FileHandle.standardInput.readDataToEndOfFile()
+        event = (try? JSONSerialization.jsonObject(with: input)) as? [String: Any] ?? [:]
+    }
+
+    /// The first non-empty string among the keys: agents spell the same thing differently.
+    func field(_ keys: String..., in object: [String: Any]? = nil) -> String {
+        for k in keys { if let v = (object ?? event)[k] as? String, !v.isEmpty { return v } }
+        return ""
+    }
+
+    let session = field("session_id", "sessionId", "conversation_id", "conversationId")
+    let id = "agent-\(which)-" + (session.isEmpty ? String(pid) : session)
+    var cwd = field("cwd")
+    if cwd.isEmpty { cwd = (event["workspace_roots"] as? [String])?.first ?? "" }
+    if cwd.isEmpty { cwd = FileManager.default.currentDirectoryPath }
+    let title = name + " · " + (cwd as NSString).lastPathComponent
+
+    // `Bash: npm test`, `Edit: Sources/App.swift`
+    func tool() -> String {
+        let name = field("tool_name", "toolName")
+        let input = (event["tool_input"] ?? event["toolInput"]) as? [String: Any]
+        let what = field("command", "file_path", "filePath", "path", "pattern", "query", in: input ?? [:])
+        return clip(what.isEmpty ? name : name + ": " + what)
+    }
+
+    let hook = field("hook_event_name", "hookEventName")
+    let step: Step
+    switch (which, hook) {
+    case ("claude", "UserPromptSubmit"), ("gemini", "BeforeAgent"), ("copilot", "UserPromptSubmit"):
+        step = .start(clip(field("prompt")))
+    case ("claude", "PreToolUse"), ("gemini", "BeforeTool"), ("copilot", "PreToolUse"), ("cursor", "postToolUse"):
+        step = .status(tool())
+    case ("claude", "Notification"), ("gemini", "Notification"):
+        step = .wait(clip(field("message", "notification_type")))
+    case ("claude", "Stop"), ("gemini", "AfterAgent"), ("copilot", "Stop"), ("cursor", "stop"):
+        step = .done("")
+    case ("claude", "SessionEnd"), ("gemini", "SessionEnd"), ("cursor", "sessionEnd"):
+        step = .clear
+    case ("codex", _):
+        step = field("type") == "agent-turn-complete" ? .done(clip(field("last-assistant-message"))) : .nothing
+    case ("aider", _):
+        // Aider calls its notifications command when a reply is done and it waits for you
+        step = .done("")
+    default:
+        step = .nothing
+    }
+
+    switch step {
+    case .start(let d):  task("start", id: id, pid: pid, tty: tty, title: title, detail: d, socket: socket)
+    case .status(let d): task("status", id: id, pid: pid, tty: tty, title: title, detail: d, socket: socket)
+    case .wait(let d):   task("wait", id: id, pid: pid, tty: tty, title: title, detail: d, socket: socket)
+    case .done(let d):   task("done", id: id, pid: pid, tty: tty, code: 0, title: title, detail: d, socket: socket)
+    case .clear:         task("clear", id: id, pid: pid, tty: tty, title: title, socket: socket)
+    case .nothing:       break
+    }
+
+    // Claude adds a hook's stdout to the conversation, so it gets nothing; Gemini,
+    // Copilot and Cursor parse it as JSON, where an empty object means "no opinion"
+    if ["gemini", "copilot", "cursor"].contains(which) { print("{}") }
+    exit(0)
 }

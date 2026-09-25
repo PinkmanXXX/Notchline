@@ -183,7 +183,7 @@ enum ShellIntegration {
 
     /// Where `notch` lives for shells and hooks: a stable path outside the app
     /// bundle, so moving or updating the app does not break a script.
-    static let cliURL = PrefsStore.directory
+    nonisolated static let cliURL = PrefsStore.directory
         .appendingPathComponent("bin", isDirectory: true)
         .appendingPathComponent("notch")
 

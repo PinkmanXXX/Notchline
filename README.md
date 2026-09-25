@@ -72,21 +72,39 @@ nothing and never fails a script.
 
 ## Coding agents
 
-Claude Code and Codex in the island: working, waiting for you, done.
+Agents in the island: working, waiting for you, done. Settings → Agents connects them.
 
 ![Claude Code waiting for a permission](Screenshots/agent-waiting.png)
 
-- **Claude Code** — Settings → Agents → **Connect** adds hooks to
-  `~/.claude/settings.json` next to your own, keeping the original as
-  `settings.json.notchtape-backup`. A prompt starts the task, each tool call shows
-  under it (`Bash: npm test`), a permission request or a question turns it amber with
-  a toast, and the end of a turn is a green toast.
-- **Codex** — one line for `~/.codex/config.toml`, shown in Settings → Agents:
-  `notify = [".../notch", "agent", "codex"]`. Codex calls it when a turn completes.
-- **Anything else** that can run a command on an event: `notch start`, `notch wait`,
-  `notch done`.
+| Agent | How it is wired | What shows |
+|---|---|---|
+| Claude Code | hooks merged into `~/.claude/settings.json` | working · tool calls · waiting for you · done |
+| Gemini CLI | hooks merged into `~/.gemini/settings.json` | working · tool calls · waiting for you · done |
+| GitHub Copilot in VS Code | its own file, `~/.copilot/hooks/notchtape.json` | working · tool calls · done |
+| Cursor | non-blocking hooks in `~/.cursor/hooks.json` | tool calls · done |
+| Codex | a line for `~/.codex/config.toml` | done |
+| Aider | two lines for `~/.aider.conf.yml` | done |
 
-Agent turns do not go into the history; they are too many.
+Merged files keep everything else in them, and the first change leaves a
+`.notchtape-backup` copy beside the file. TOML and YAML are left for you to paste into.
+
+Cursor gets only its non-blocking hooks: its blocking ones treat an empty answer as
+"deny", and NotchTape should never be able to allow or refuse anything an agent does.
+For the same reason no hook answers with a decision: Claude's stays silent, the others
+print `{}`.
+
+**VS Code.** Its built-in terminal needs nothing: it runs your zsh with the hook, so
+commands there show up like anywhere else. Its Copilot agent is the GitHub Copilot row.
+
+**Anything else** that can run a command on an event:
+
+```bash
+notch start "My agent" --id my-agent
+notch wait "Needs approval" --id my-agent
+notch done --id my-agent
+```
+
+Agent turns do not go into the history; there are too many.
 
 ![Tasks in the panel](Screenshots/panel-tasks.png)
 
@@ -171,7 +189,8 @@ make dmg        # the same app, packed into NotchTape.dmg
 `make e2e` runs the debug app with `NOTCHTAPE_TEST_HOME` pointing at a temporary folder,
 so it has its own socket, `.zshrc`, `.claude` and kubeconfig and never touches yours,
 and drives it the way people do: zsh sessions with the hook, `notch`, Claude Code hook
-events, kubeconfig and AWS profile switches, hover, pin and outside clicks. Debug
+events for every agent, kubeconfig and AWS profile switches, hover, pin and outside
+clicks. Debug
 builds answer a `dump` request on the socket with their state, which is what the tests
 check.
 

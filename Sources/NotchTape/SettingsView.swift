@@ -372,10 +372,9 @@ private struct GuardTab: View {
 // MARK: agents
 
 private struct AgentsTab: View {
-    @State private var claudeOn = AgentIntegration.claudeInstalled
-    @State private var codexOn = AgentIntegration.codexInstalled
-    @State private var problem = ""
-    @State private var copied = false
+    @State private var installed: [Agent: Bool] = [:]
+    @State private var problem: [Agent: String] = [:]
+    @State private var copied: Agent?
 
     var body: some View {
         Form {
@@ -383,69 +382,88 @@ private struct AgentsTab: View {
                 Text(L10n.t("agentsIntro")).font(.callout)
             }
 
-            Section("Claude Code") {
-                HStack(spacing: 10) {
-                    status(claudeOn)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(L10n.t(claudeOn ? "agentConnected" : "agentNotConnected"))
-                        Text("~/.claude/settings.json").font(.caption.monospaced()).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    if claudeOn {
-                        Button(L10n.t("remove")) { run { try AgentIntegration.removeClaude() } }
-                    } else {
-                        Button(L10n.t("connectAgent")) { run { try AgentIntegration.installClaude() } }
-                            .buttonStyle(.borderedProminent)
-                    }
-                }
-                Text(L10n.t("claudeHint")).font(.caption).foregroundStyle(.secondary)
-                if !problem.isEmpty {
-                    Label(problem, systemImage: "exclamationmark.triangle.fill")
-                        .font(.caption).foregroundStyle(.orange)
-                }
+            ForEach(Agent.allCases) { agent in
+                Section(agent.name) { row(agent) }
             }
 
-            Section("Codex") {
-                HStack(spacing: 10) {
-                    status(codexOn)
-                    Text(L10n.t(codexOn ? "agentConnected" : "agentNotConnected"))
-                    Spacer()
-                    Button(copied ? L10n.t("copied") : L10n.t("copy")) {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(AgentIntegration.codexLine, forType: .string)
-                        copied = true
-                    }
-                }
-                Text(AgentIntegration.codexLine)
+            Section(L10n.t("vscode")) {
+                Text(L10n.t("vscodeHint")).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Section(L10n.t("otherAgents")) {
+                Text(L10n.t("otherAgentsHint")).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(Self.customExample)
                     .font(.system(size: 11, design: .monospaced))
                     .textSelection(.enabled)
                     .padding(8)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.15)))
-                Text(L10n.t("codexHint")).font(.caption).foregroundStyle(.secondary)
-            }
-
-            Section(L10n.t("otherAgents")) {
-                Text(L10n.t("otherAgentsHint")).font(.caption).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
-        .onAppear {
-            claudeOn = AgentIntegration.claudeInstalled
-            codexOn = AgentIntegration.codexInstalled
+        .onAppear(perform: refresh)
+    }
+
+    static let customExample = """
+    notch start "My agent" --id my-agent     # it started working
+    notch status "Editing App.swift" --id my-agent
+    notch wait "Needs approval" --id my-agent   # amber, with a toast
+    notch done --id my-agent                 # its turn is over
+    """
+
+    @ViewBuilder private func row(_ agent: Agent) -> some View {
+        let on = installed[agent] ?? false
+        HStack(spacing: 10) {
+            Image(systemName: on ? "checkmark.circle.fill" : "circle.dashed")
+                .foregroundStyle(on ? .green : .secondary)
+                .font(.title3)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(L10n.t(on ? "agentConnected" : "agentNotConnected"))
+                Text(agent.configPath).font(.caption.monospaced()).foregroundStyle(.secondary)
+            }
+            Spacer()
+            switch agent.setup {
+            case .line:
+                Button(copied == agent ? L10n.t("copied") : L10n.t("copy")) {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(AgentIntegration.line(for: agent), forType: .string)
+                    copied = agent
+                }
+            case .mergedHooks, .ownFile:
+                if on {
+                    Button(L10n.t("remove")) { run(agent) { try AgentIntegration.remove(agent) } }
+                } else {
+                    Button(L10n.t("connectAgent")) { run(agent) { try AgentIntegration.install(agent) } }
+                        .buttonStyle(.borderedProminent)
+                }
+            }
+        }
+        if agent.setup == .line {
+            Text(AgentIntegration.line(for: agent))
+                .font(.system(size: 11, design: .monospaced))
+                .textSelection(.enabled)
+                .padding(8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.15)))
+        }
+        Text(L10n.t("agentHint." + agent.rawValue)).font(.caption).foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        if let problem = problem[agent] {
+            Label(problem, systemImage: "exclamationmark.triangle.fill")
+                .font(.caption).foregroundStyle(.orange)
         }
     }
 
-    private func status(_ on: Bool) -> some View {
-        Image(systemName: on ? "checkmark.circle.fill" : "circle.dashed")
-            .foregroundStyle(on ? .green : .secondary)
-            .font(.title3)
+    private func refresh() {
+        for agent in Agent.allCases { installed[agent] = AgentIntegration.isInstalled(agent) }
     }
 
-    private func run(_ action: () throws -> Void) {
-        do { try action(); problem = "" }
-        catch { problem = error.localizedDescription }
-        claudeOn = AgentIntegration.claudeInstalled
+    private func run(_ agent: Agent, _ action: () throws -> Void) {
+        do { try action(); problem[agent] = nil }
+        catch { problem[agent] = error.localizedDescription }
+        refresh()
     }
 }
 

@@ -167,7 +167,7 @@ final class AppState: ObservableObject {
             let title = u.title.isEmpty ? (task?.title ?? "") : u.title
             let ok = u.state == "done"
             let started = task?.started ?? now
-            let agent = u.id.hasPrefix("claude-") || u.id.hasPrefix("codex-")
+            let agent = u.id.hasPrefix("agent-")
             var record = TrackedCommand(id: "task-\(u.id)-\(Int(started.timeIntervalSince1970))",
                                         pid: u.pid, command: title.isEmpty ? L10n.t("task") : title,
                                         cwd: u.detail.isEmpty ? (task?.detail ?? "") : u.detail,
@@ -499,7 +499,7 @@ final class AppState: ObservableObject {
         tasks = [ScriptTask(id: "pid-1", pid: 1, tty: "", title: "Deploy api", detail: "3 of 7 hosts",
                             progress: 0.42, started: now.addingTimeInterval(-95), updated: now)]
         if waiting {
-            tasks.insert(ScriptTask(id: "claude-1", pid: 1, tty: "", title: "Claude Code · web",
+            tasks.insert(ScriptTask(id: "agent-claude-1", pid: 1, tty: "", title: "Claude Code · web",
                                     detail: "Claude needs your permission to use Bash", waiting: true,
                                     started: now.addingTimeInterval(-40), updated: now), at: 0)
         }
@@ -556,6 +556,14 @@ extension AppState {
             SettingsWindow.close()
         case "guard":
             evaluateGuard()
+        case "installAgent", "removeAgent":
+            guard args.count >= 2, let agent = Agent(rawValue: args[1]) else { return #"{"error":"no such agent"}"# }
+            do {
+                if args[0] == "installAgent" { try AgentIntegration.install(agent) }
+                else { try AgentIntegration.remove(agent) }
+            } catch {
+                return #"{"error":"\#(error.localizedDescription)"}"#
+            }
         case "installHook", "removeHook", "installClaude", "removeClaude":
             do {
                 switch args[0] {
@@ -600,6 +608,7 @@ extension AppState {
             "env": env.map { ["kind": $0.kind.rawValue, "value": $0.value, "prod": $0.isProd] },
             "islands": islands,
             "claudeInstalled": AgentIntegration.claudeInstalled,
+            "agents": Dictionary(uniqueKeysWithValues: Agent.allCases.map { ($0.rawValue, AgentIntegration.isInstalled($0)) }),
         ]
         let data = (try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])) ?? Data()
         return String(decoding: data, as: UTF8.self)

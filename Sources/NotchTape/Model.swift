@@ -60,8 +60,8 @@ struct ScriptTask: Identifiable, Equatable {
     let started: Date
     var updated: Date
 
-    /// Claude Code and Codex report every turn; those are not history.
-    var isAgent: Bool { id.hasPrefix("claude-") || id.hasPrefix("codex-") }
+    /// Agents report every turn; those are not history.
+    var isAgent: Bool { id.hasPrefix("agent-") }
 
     func elapsed(at now: Date = Date()) -> TimeInterval { now.timeIntervalSince(started) }
 }
