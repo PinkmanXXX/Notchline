@@ -1,0 +1,10 @@
+build/
+DerivedData/
+*.xcuserstate
+.DS_Store
+dmg/
+*.dmg
+.build/
+_archive/
+NotchTape.app/
+Resources/AppIcon.icns
