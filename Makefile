@@ -4,7 +4,7 @@ BUNDLE  := $(APP).app
 BINDIR   = $(shell swift build -c release --arch arm64 --arch x86_64 --show-bin-path)
 BIN      = $(BINDIR)/$(APP)
 
-.PHONY: all build bundle icon dmg run test e2e clean
+.PHONY: all build bundle icon dmg run test e2e promo clean
 
 all: dmg
 
@@ -53,6 +53,14 @@ test:
 e2e:
 	swift build
 	swift test --filter NotchlineE2ETests
+
+## promo images for social posts, from the real interface: docs/promo
+promo: icon
+	swift build
+	rm -rf .build/promo-snaps
+	NOTCHLINE_SNAPSHOT_CLEAR=1 NOTCHLINE_SNAPSHOT_SCALE=3 .build/debug/$(APP) --snapshot .build/promo-snaps
+	swiftc -O scripts/promo/Backdrop.swift scripts/promo/main.swift -o .build/promo
+	.build/promo .build/promo-snaps AppIcon/AppIcon-1024.png docs/promo
 
 clean:
 	rm -rf .build $(BUNDLE) dmg $(APP).dmg Resources/AppIcon.icns
