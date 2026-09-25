@@ -67,7 +67,7 @@ enum L10n {
             "source.ssh": "SSH host", "sourceHint.ssh": "the host of a running ssh or mosh",
             "source.path": "Folder path", "sourceHint.path": "the current directory, like ~/infra/prod",
             "settings": "Settings", "general": "General", "terminal": "Terminal", "about": "About",
-            "tagline": "Long-running commands, in the notch.",
+            "tagline": "Commands, scripts and AI agents — in your Mac's notch.",
             "version": "Version {v} · macOS 14+",
             "openSettings": "Settings…", "quit": "Quit Notchline",
 
@@ -162,7 +162,7 @@ enum L10n {
             "source.ssh": "SSH-хост", "sourceHint.ssh": "хост запущенного ssh или mosh",
             "source.path": "Путь к папке", "sourceHint.path": "текущая папка, например ~/infra/prod",
             "settings": "Настройки", "general": "Основные", "terminal": "Терминал", "about": "О программе",
-            "tagline": "Долгие команды — прямо в вырезе экрана.",
+            "tagline": "Команды, скрипты и ИИ-агенты — в вырезе Mac.",
             "version": "Версия {v} · macOS 14+",
             "openSettings": "Настройки…", "quit": "Выйти из Notchline",
 
@@ -257,7 +257,7 @@ enum L10n {
             "source.ssh": "SSH 主机", "sourceHint.ssh": "正在运行的 ssh 或 mosh 的主机",
             "source.path": "目录路径", "sourceHint.path": "当前目录，如 ~/infra/prod",
             "settings": "设置", "general": "通用", "terminal": "终端", "about": "关于",
-            "tagline": "长时间运行的命令，显示在刘海处。",
+            "tagline": "命令、脚本和 AI 智能体——就在 Mac 的刘海里。",
             "version": "版本 {v} · macOS 14+",
             "openSettings": "设置…", "quit": "退出 Notchline",
 

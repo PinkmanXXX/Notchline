@@ -571,7 +571,7 @@ extension AppState {
         case "pin":
             controller.togglePin()
         case "settings":
-            SettingsWindow.show()
+            SettingsWindow.show(args.count > 1 && args[1] == "about" ? .about : nil)
         case "closeSettings":
             SettingsWindow.close()
         case "guard":
