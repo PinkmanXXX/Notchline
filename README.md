@@ -8,7 +8,7 @@
 [![macOS](https://img.shields.io/badge/macOS-14%2B-3fb950)](#установка)
 [![Apple Silicon и Intel](https://img.shields.io/badge/Apple%20Silicon%20и%20Intel-3fb950)](#установка)
 
-[Скачать](#установка) · [Возможности](#возможности) · [Агенты](#ии-агенты) · [Prod Guard](#prod-guard) · [notch для скриптов](#notch-для-скриптов)
+[Скачать](#установка) · [Возможности](#возможности) · [Агенты](#ии-агенты) · [Prod Guard](#prod-guard) · [notch для скриптов](#notch-для-скриптов) · [Поддержать](#поддержать-проект)
 
 </div>
 
@@ -137,6 +137,20 @@ make run     # собрать и запустить
 make test    # юнит-тесты
 make e2e     # сквозные тесты: настоящее приложение, zsh и notch
 ```
+
+## Поддержать проект
+
+Notchline бесплатный и таким останется: без рекламы, подписок и сбора данных.
+Донат добровольный и ничего не открывает в приложении — он помогает делать
+новое. Спасибо! 💜
+
+| Способ | |
+|---|---|
+| Российской картой, СБП, Tinkoff Pay | [CloudTips](https://pay.cloudtips.ru/p/d4f9e3d1) |
+| Зарубежной картой, Apple Pay, Google Pay | [Buy Me a Coffee](https://buymeacoffee.com/relo.cate) |
+| USDT (TRC-20) | `TS83ViXrdezUpp1eFadqj1rBhGLZaba1c1` |
+| TON | `UQBchO4XFPwF9MMa_tjXpwqTo8IL2FhUDyllhYuFo8WM-Qbf` |
+| Ethereum (ERC-20) | `0xC06F6B3A029d7Ea00705B7028490744e2BC16799` |
 
 ## Лицензия
 
