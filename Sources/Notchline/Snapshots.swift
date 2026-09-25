@@ -73,6 +73,10 @@ enum Snapshots {
         render(RootView(geometry: plain), strip, "running-small", dir)
 
         prefs.scale = 1
+        prefs.width = 0.6
+        state.prefs = prefs
+        render(RootView(geometry: plain), strip, "running-narrow", dir)
+        prefs.width = 1
         prefs.edge = .right
         state.prefs = prefs
         render(RootView(geometry: plain), CGSize(width: 90, height: 200), "vertical", dir)

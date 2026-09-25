@@ -45,8 +45,10 @@ struct Prefs: Codable {
     var edge: Edge = .top
     var show: ShowMode = .auto
     var surface: Surface = .solid
-    /// 1 is the size of a 14-inch MacBook Pro notch: 185 × 32 pt.
+    /// The whole island; 1 is a 14-inch MacBook Pro notch, 185 × 32 pt.
     var scale: Double = 1
+    /// Its proportion: longer or shorter at the same height.
+    var width: Double = 1
     /// Of the background only; text always stays fully opaque.
     var opacity: Double = 1
     var lang: Lang = .en
@@ -82,6 +84,7 @@ struct Prefs: Codable {
         show = (try? c.decode(ShowMode.self, forKey: .show)) ?? d.show
         surface = (try? c.decode(Surface.self, forKey: .surface)) ?? d.surface
         scale = (try? c.decode(Double.self, forKey: .scale)) ?? d.scale
+        width = (try? c.decode(Double.self, forKey: .width)) ?? d.width
         opacity = (try? c.decode(Double.self, forKey: .opacity)) ?? d.opacity
         lang = (try? c.decode(Lang.self, forKey: .lang)) ?? d.lang
         allDisplays = (try? c.decode(Bool.self, forKey: .allDisplays)) ?? d.allDisplays

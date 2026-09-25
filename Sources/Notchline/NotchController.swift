@@ -25,18 +25,31 @@ struct ScreenGeometry: Equatable {
     }
 }
 
-/// Every size the island is drawn at, derived from one scale and the screen.
-/// At scale 1 the idle island is a 14-inch MacBook Pro notch, 185 × 32 pt; on a
-/// screen with a real notch it takes that notch's exact size instead.
+/// Every size the island is drawn at, derived from two scales and the screen.
+/// At 1 × 1 the idle island is a 14-inch MacBook Pro notch, 185 × 32 pt; on a
+/// screen with a real notch it is never narrower than that notch.
 struct Metrics {
     let edge: Edge
+    /// Everything: height, type, length.
     let scale: CGFloat
+    /// The proportion: longer or shorter at the same height.
+    var widthScale: CGFloat = 1
     let geometry: ScreenGeometry
 
     /// Only the top edge meets a camera housing.
     var realNotch: Bool { edge == .top && geometry.hasNotch }
 
-    var notchWidth: CGFloat { realNotch ? geometry.notchWidth : 185 * scale }
+    var notchWidth: CGFloat {
+        realNotch ? max(geometry.notchWidth, geometry.notchWidth * widthScale) : 185 * scale * widthScale
+    }
+
+    /// Length of the strip while something runs, without its fillets. Size
+    /// scales it with everything else; width changes the proportion.
+    var stripLength: CGFloat { max(notchWidth, 290 * scale * widthScale) }
+
+    /// Beside a real notch the halves size to their text, so the command is
+    /// cut by characters there; elsewhere it gives way to the set length.
+    var commandLimit: Int { realNotch ? max(10, Int((26 * widthScale).rounded())) : 120 }
     var thickness: CGFloat { realNotch ? max(geometry.topInset, 32 * scale) : 32 * scale }
     /// Space the expanded content leaves free for the housing.
     var under: CGFloat { realNotch ? geometry.topInset : 0 }

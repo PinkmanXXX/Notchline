@@ -14,6 +14,7 @@ enum L10n {
 
     private static let table: [Lang: [String: String]] = [
         .en: [
+            "height": "Height", "width": "Width",
             "agentHint.claude": "Hooks for prompts, tool calls, permission requests and the end of each turn, next to your own. The file is rewritten with sorted keys; the original is kept as settings.json.notchline-backup.",
             "agentHint.gemini": "The same events through Gemini CLI hooks: BeforeAgent, BeforeTool, Notification, AfterAgent. Your settings.json keeps its other keys; a backup is left beside it.",
             "agentHint.copilot": "Agent mode in VS Code: a hooks file of its own in ~/.copilot/hooks, nothing else is touched. Hooks are a VS Code preview and on by default (chat.useHooks).",
@@ -37,7 +38,7 @@ enum L10n {
             "otherAgentsHint": "Anything that can run a command on an event can use notch: notch start, notch wait \"Needs input\", notch done.",
             "agentUnreadable": "Could not read {p} as JSON; it was left alone.",
             "look": "Look", "opacity": "Opacity",
-            "lookHint": "At 100 % the island is the size of a 14-inch MacBook Pro notch. On a screen with a notch it takes that notch's exact size.",
+            "lookHint": "At 100 % the island is the size of a 14-inch MacBook Pro notch. Size scales all of it; width makes it longer or shorter at the same height. On a screen with a notch it takes that notch's exact size.",
             "resetLook": "Reset to notch",
             "prodGuard": "Prod Guard", "prodEntered": "You are in production",
             "otherProdShells": "{n} shells point at production", "prodMatched": "Matches a production pattern",
@@ -97,6 +98,7 @@ enum L10n {
             "ignoreHint": "Programs that run for as long as you use them. First word of the command, comma-separated."
         ],
         .ru: [
+            "height": "Высота", "width": "Ширина",
             "agentHint.claude": "Хуки на промпт, вызовы инструментов, запросы разрешений и конец хода — рядом с вашими. Файл перезаписывается с отсортированными ключами; оригинал сохраняется как settings.json.notchline-backup.",
             "agentHint.gemini": "Те же события через хуки Gemini CLI: BeforeAgent, BeforeTool, Notification, AfterAgent. Остальные ключи settings.json остаются; рядом сохраняется копия.",
             "agentHint.copilot": "Режим агента в VS Code: отдельный файл хуков в ~/.copilot/hooks, больше ничего не трогается. Хуки в VS Code — preview-функция и включены по умолчанию (chat.useHooks).",
@@ -120,7 +122,7 @@ enum L10n {
             "otherAgentsHint": "Всё, что умеет запускать команду по событию, может пользоваться notch: notch start, notch wait \"Нужен ответ\", notch done.",
             "agentUnreadable": "Не удалось прочитать {p} как JSON; файл не тронут.",
             "look": "Внешний вид", "opacity": "Непрозрачность",
-            "lookHint": "При 100 % остров размером с вырез MacBook Pro 14″. На экране с вырезом он принимает точный размер выреза.",
+            "lookHint": "При 100 % остров размером с вырез MacBook Pro 14″. «Размер» масштабирует его целиком, «Ширина» делает длиннее или короче при той же высоте. На экране с вырезом он принимает точный размер выреза.",
             "resetLook": "Как настоящий вырез",
             "prodGuard": "Prod Guard", "prodEntered": "Вы в продакшене",
             "otherProdShells": "Оболочек, смотрящих в прод: {n}", "prodMatched": "Совпадает с шаблоном прода",
@@ -180,6 +182,7 @@ enum L10n {
             "ignoreHint": "Программы, которые работают, пока вы ими пользуетесь. Первое слово команды, через запятую."
         ],
         .zh: [
+            "height": "高度", "width": "宽度",
             "agentHint.claude": "为提示、工具调用、权限请求和每轮结束添加钩子，与你已有的钩子并存。文件会按键排序重写，原文件保存为 settings.json.notchline-backup。",
             "agentHint.gemini": "通过 Gemini CLI 钩子接收相同事件：BeforeAgent、BeforeTool、Notification、AfterAgent。settings.json 的其他键保持不变，并在旁边保留备份。",
             "agentHint.copilot": "VS Code 中的智能体模式：在 ~/.copilot/hooks 中使用独立的钩子文件，不改动其他内容。钩子是 VS Code 预览功能，默认开启（chat.useHooks）。",

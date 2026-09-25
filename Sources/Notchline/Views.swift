@@ -160,7 +160,9 @@ struct RootView: View {
     enum Mode: Hashable { case toast, panel, strip, idle, sliver }
 
     private var edge: Edge { state.prefs.edge }
-    private var m: Metrics { Metrics(edge: edge, scale: state.prefs.scale, geometry: geometry) }
+    private var m: Metrics {
+        Metrics(edge: edge, scale: state.prefs.scale, widthScale: state.prefs.width, geometry: geometry)
+    }
 
     private var mode: Mode {
         if state.toast != nil { return .toast }
@@ -181,6 +183,7 @@ struct RootView: View {
         var toast: UUID?
         var connected: Bool
         var scale: Double
+        var width: Double
         var edge: Edge
     }
 
@@ -189,7 +192,7 @@ struct RootView: View {
             count: state.visibleRunning.count + state.tasks.count,
             task: state.orderedTasks.first?.id, waiting: state.orderedTasks.first?.waiting ?? false,
             prod: !state.prodAlert.isEmpty, toast: state.toast?.id,
-            connected: state.isConnected, scale: state.prefs.scale, edge: edge)
+            connected: state.isConnected, scale: state.prefs.scale, width: state.prefs.width, edge: edge)
     }
 
     /// The strip's natural size, measured off-screen so the island can animate
@@ -258,7 +261,7 @@ struct RootView: View {
         case .idle:
             return CGSize(width: m.notchWidth, height: 4)
         case .sliver:
-            return CGSize(width: 5, height: 78 * m.scale)
+            return CGSize(width: 5, height: 78 * m.scale * m.widthScale)
         }
     }
 
@@ -378,37 +381,51 @@ struct BarView: View {
 
     // MARK: horizontal
 
-    private func horizontal(now: Date) -> some View {
-        Group {
-            if m.realNotch {
-                NotchSplit(gap: m.notchWidth + 12 * m.scale) {
-                    HStack(spacing: 7 * m.scale) { lead(now: now) }
-                    HStack(spacing: 7 * m.scale) { trail(now: now) }
-                }
-            } else {
-                HStack(spacing: 12 * m.scale) {
-                    HStack(spacing: 7 * m.scale) { lead(now: now) }
-                    HStack(spacing: 7 * m.scale) { trail(now: now) }
-                }
+    @ViewBuilder private func horizontal(now: Date) -> some View {
+        if m.realNotch {
+            // around a camera housing the halves take what they need
+            NotchSplit(gap: m.notchWidth + 12 * m.scale) {
+                HStack(spacing: 7 * m.scale) { lead(now: now) }
+                HStack(spacing: 7 * m.scale) { trail(now: now) }
             }
+            .padding(.horizontal, m.sideInset)
+            .frame(minWidth: m.notchWidth)
+            .frame(height: m.thickness)
+            .fixedSize()
+        } else {
+            // a set length, so the island does not jump from command to command:
+            // the text gives way, the timer and counts never do
+            HStack(spacing: 0) {
+                // above the spacer: otherwise HStack splits the room between them
+                HStack(spacing: 7 * m.scale) { lead(now: now) }
+                    .layoutPriority(0.5)
+                Spacer(minLength: 10 * m.scale)
+                HStack(spacing: 7 * m.scale) { trail(now: now) }
+                    .fixedSize()
+                    .layoutPriority(1)
+            }
+            .padding(.horizontal, m.sideInset)
+            .frame(width: m.stripLength, height: m.thickness)
         }
-        .padding(.horizontal, m.sideInset)
-        .frame(minWidth: m.notchWidth)
-        .frame(height: m.thickness)
-        .fixedSize()
     }
 
     private var font: CGFloat { m.font }
-    private var commandLimit: Int { m.realNotch ? 26 : 34 }
+    private var commandLimit: Int { m.commandLimit }
 
     /// What is happening: a spinner and the command, or the last result.
     @ViewBuilder private func lead(now: Date) -> some View {
         if prod && !busy {
             warning
             Text("PROD").font(.system(size: font, weight: .heavy)).tracking(0.8)
+                .fixedSize()
+            // the environments give way to the length, the label never does
+            Text(state.prodAlert.map(\.text).joined(separator: " · "))
+                .font(.system(size: font - 1, weight: .medium, design: mono))
+                .lineLimit(1).truncationMode(.tail)
         } else if let task {
             if prod && !task.waiting { warning } else { TaskMark(task: task, size: font) }
             Text(clip(task.title, commandLimit))
+                .lineLimit(1).truncationMode(.middle)
                 .font(.system(size: font, weight: .medium))
         } else if !state.isConnected {
             Image(systemName: "terminal").font(.system(size: font, weight: .semibold))
@@ -417,10 +434,12 @@ struct BarView: View {
         } else if let cmd = state.visibleRunning.first {
             if prod { warning } else { StatusMark(command: cmd, size: font) }
             Text(cmd.short(commandLimit))
+                .lineLimit(1).truncationMode(.middle)
                 .font(.system(size: font, weight: .medium, design: mono))
         } else if let last = state.recent.first {
             StatusMark(command: last, size: font)
             Text(last.short(commandLimit))
+                .lineLimit(1).truncationMode(.middle)
                 .font(.system(size: font, weight: .medium, design: mono))
                 .foregroundStyle(.white.opacity(0.7))
         } else {
@@ -434,9 +453,7 @@ struct BarView: View {
     /// How long, how many more, and where.
     @ViewBuilder private func trail(now: Date) -> some View {
         if prod && !busy {
-            Text(state.prodAlert.prefix(2).map(\.text).joined(separator: " · "))
-                .font(.system(size: font - 1, weight: .medium, design: mono))
-            if state.prodAlert.count > 2 { badge("+\(state.prodAlert.count - 2)") }
+            EmptyView()   // all of it is in `lead`, where it can be shortened
         } else if let task {
             if task.waiting {
                 Text(L10n.t("waitingShort"))

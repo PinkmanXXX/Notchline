@@ -117,6 +117,13 @@ private struct GeneralTab: View {
                             .monospacedDigit().frame(width: 48, alignment: .trailing)
                     }
                 }
+                LabeledContent(L10n.t("width")) {
+                    HStack {
+                        Slider(value: prefBinding(\.width), in: 0.6...1.5, step: 0.05)
+                        Text("\(Int((state.prefs.width * 100).rounded())) %")
+                            .monospacedDigit().frame(width: 48, alignment: .trailing)
+                    }
+                }
                 LabeledContent(L10n.t("opacity")) {
                     HStack {
                         Slider(value: prefBinding(\.opacity), in: 0.2...1, step: 0.05)
@@ -126,9 +133,10 @@ private struct GeneralTab: View {
                 }
                 Text(L10n.t("lookHint")).font(.caption).foregroundStyle(.secondary)
                 Button(L10n.t("resetLook")) {
-                    var p = state.prefs; p.scale = 1; p.opacity = 1; p.surface = .solid; state.prefs = p
+                    var p = state.prefs; p.scale = 1; p.width = 1; p.opacity = 1; p.surface = .solid; state.prefs = p
                 }
-                .disabled(state.prefs.scale == 1 && state.prefs.opacity == 1 && state.prefs.surface == .solid)
+                .disabled(state.prefs.scale == 1 && state.prefs.width == 1 && state.prefs.opacity == 1
+                          && state.prefs.surface == .solid)
             }
 
         }
