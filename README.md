@@ -27,13 +27,8 @@
 
 ## Установка
 
-<div align="center">
-
-<a href="https://github.com/PinkmanXXX/Notchline/releases/latest/download/Notchline.dmg"><img alt="Скачать Notchline для Mac" src="docs/assets/download.svg" width="400"></a>
-
-</div>
-
-1. Откройте `Notchline.dmg` и перетащите Notchline в «Программы».
+1. Скачайте `Notchline.dmg` кнопкой в начале страницы, откройте его и перетащите
+   Notchline в «Программы».
 2. Запустите Notchline. Сборка не подписана сертификатом Apple, поэтому при
    первом запуске macOS спросит, доверяете ли вы ей: откройте **Системные
    настройки → Конфиденциальность и безопасность**, внизу нажмите
