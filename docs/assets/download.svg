@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="92" viewBox="0 0 400 92">
+  <!-- The download button for the README, drawn as the Notchline island:
+       a mark on the left, the words, and the file type where the timer goes;
+       no version number, since the link always serves the latest release -->
+  <defs>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A3D45"/>
+      <stop offset="1" stop-color="#1A1B20"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0" r="0.8">
+      <stop offset="0" stop-color="#8BF0BE" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#8BF0BE" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- the island -->
+  <rect x="2" y="2" width="396" height="64" rx="32" fill="url(#edge)"/>
+  <rect x="3" y="3" width="394" height="62" rx="31" fill="#000000"/>
+  <rect x="3" y="3" width="394" height="62" rx="31" fill="url(#glow)"/>
+
+  <!-- the mark: a green disc with a downward arrow -->
+  <circle cx="36" cy="34" r="18" fill="#8BF0BE"/>
+  <path d="M 36 24 L 36 42 M 28.5 35 L 36 42.5 L 43.5 35" fill="none" stroke="#0E0F12"
+        stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+    <text x="68" y="41" font-size="21" font-weight="600" fill="#FFFFFF">Скачать для Mac</text>
+  </g>
+  <g font-family="'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-weight="700">
+    <text x="366" y="40" font-size="17" fill="#8BF0BE" text-anchor="end">.dmg</text>
+  </g>
+
+  <!-- the small print, under the island -->
+  <text x="200" y="86" text-anchor="middle" font-size="12.5" fill="#8B929C"
+        font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">macOS 14+ · Apple Silicon и Intel · бесплатно</text>
+</svg>

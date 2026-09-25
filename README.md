@@ -8,6 +8,8 @@
 [![macOS](https://img.shields.io/badge/macOS-14%2B-3fb950)](#установка)
 [![Apple Silicon и Intel](https://img.shields.io/badge/Apple%20Silicon%20и%20Intel-3fb950)](#установка)
 
+<a href="https://github.com/PinkmanXXX/Notchline/releases/latest/download/Notchline.dmg"><img alt="Скачать Notchline для Mac" src="docs/assets/download.svg" width="400"></a>
+
 [Скачать](#установка) · [Возможности](#возможности) · [Агенты](#ии-агенты) · [Prod Guard](#prod-guard) · [notch для скриптов](#notch-для-скриптов) · [Поддержать](#поддержать-проект)
 
 </div>
@@ -27,9 +29,7 @@
 
 <div align="center">
 
-### [⬇ Скачать Notchline для Mac](https://github.com/PinkmanXXX/Notchline/releases/latest/download/Notchline.dmg)
-
-macOS 14 и новее · Apple Silicon и Intel · бесплатно
+<a href="https://github.com/PinkmanXXX/Notchline/releases/latest/download/Notchline.dmg"><img alt="Скачать Notchline для Mac" src="docs/assets/download.svg" width="400"></a>
 
 </div>
 
