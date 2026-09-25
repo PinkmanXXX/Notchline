@@ -73,7 +73,7 @@ enum L10n {
 
             "language": "Language",
             "show": "Show", "showAuto": "While running", "showAlways": "Always", "showHidden": "Hide",
-            "showHintAuto": "The strip appears while a long command runs; otherwise only a sliver stays on the edge.",
+            "showHintAuto": "The island comes out while a long command, a task or an agent is running, and hides again after.",
             "showHintAlways": "The strip stays on screen and shows the last result when nothing is running.",
             "showHintHidden": "Invisible until the cursor reaches the screen edge.",
             "screenEdge": "Screen edge", "top": "Top", "right": "Right", "bottom": "Bottom", "left": "Left",
@@ -168,7 +168,7 @@ enum L10n {
 
             "language": "Язык",
             "show": "Показывать", "showAuto": "Во время команд", "showAlways": "Всегда", "showHidden": "Скрыть",
-            "showHintAuto": "Полоска появляется, пока идёт долгая команда; в остальное время на краю остаётся тонкая линия.",
+            "showHintAuto": "Остров появляется, пока идёт долгая команда, задача или агент, и прячется после.",
             "showHintAlways": "Полоска всегда на экране, а без команд показывает последний результат.",
             "showHintHidden": "Не видна, пока курсор не дойдёт до края экрана.",
             "screenEdge": "Край экрана", "top": "Сверху", "right": "Справа", "bottom": "Снизу", "left": "Слева",
@@ -263,7 +263,7 @@ enum L10n {
 
             "language": "语言",
             "show": "显示", "showAuto": "运行时", "showAlways": "始终", "showHidden": "隐藏",
-            "showHintAuto": "长命令运行时显示悬浮条，其余时间边缘只保留一条细线。",
+            "showHintAuto": "长命令、任务或智能体运行时刘海展开，结束后隐藏。",
             "showHintAlways": "悬浮条常驻屏幕，空闲时显示上一次的结果。",
             "showHintHidden": "光标移到屏幕边缘前不可见。",
             "screenEdge": "屏幕边缘", "top": "顶部", "right": "右侧", "bottom": "底部", "left": "左侧",

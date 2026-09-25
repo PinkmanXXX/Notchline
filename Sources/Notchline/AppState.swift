@@ -636,6 +636,29 @@ extension AppState {
 }
 #endif
 
-enum SettingsTab: Hashable {
+enum SettingsTab: Hashable, CaseIterable, Identifiable {
     case general, terminal, prodGuard, agents, notifications, about
+    var id: Self { self }
+
+    var titleKey: String {
+        switch self {
+        case .general: return "general"
+        case .terminal: return "terminal"
+        case .prodGuard: return "prodGuard"
+        case .agents: return "agents"
+        case .notifications: return "notifications"
+        case .about: return "about"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .general: return "gearshape"
+        case .terminal: return "terminal"
+        case .prodGuard: return "exclamationmark.shield"
+        case .agents: return "sparkles"
+        case .notifications: return "bell.badge"
+        case .about: return "info.circle"
+        }
+    }
 }

@@ -19,8 +19,8 @@ enum SettingsWindow {
     static func close() { window?.close() }
 
     private static func make() -> NSWindow {
-        let w = NSWindow(contentRect: .init(x: 0, y: 0, width: 620, height: 560),
-                         styleMask: [.titled, .closable, .miniaturizable],
+        let w = NSWindow(contentRect: .init(x: 0, y: 0, width: 800, height: 580),
+                         styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
                          backing: .buffered, defer: false)
         w.center()
         w.isReleasedWhenClosed = false
@@ -30,32 +30,39 @@ enum SettingsWindow {
     }
 }
 
+/// A sidebar on the left, the section on the right — as in System Settings.
+/// Six sections in Russian do not fit a tab bar; it hid the rest behind a ».
 struct SettingsView: View {
     @ObservedObject var state = AppState.shared
 
     var body: some View {
-        TabView(selection: $state.settingsTab) {
-            GeneralTab()
-                .tabItem { Label(L10n.t("general"), systemImage: "gearshape") }
-                .tag(SettingsTab.general)
-            TerminalTab()
-                .tabItem { Label(L10n.t("terminal"), systemImage: "terminal") }
-                .tag(SettingsTab.terminal)
-            GuardTab()
-                .tabItem { Label(L10n.t("prodGuard"), systemImage: "exclamationmark.shield") }
-                .tag(SettingsTab.prodGuard)
-            AgentsTab()
-                .tabItem { Label(L10n.t("agents"), systemImage: "sparkles") }
-                .tag(SettingsTab.agents)
-            NotificationsTab()
-                .tabItem { Label(L10n.t("notifications"), systemImage: "bell.badge") }
-                .tag(SettingsTab.notifications)
-            AboutTab()
-                .tabItem { Label(L10n.t("about"), systemImage: "info.circle") }
-                .tag(SettingsTab.about)
+        NavigationSplitView {
+            List(SettingsTab.allCases, selection: Binding(
+                get: { Optional(state.settingsTab) },
+                set: { if let tab = $0 { state.settingsTab = tab } })) { tab in
+                Label(L10n.t(tab.titleKey), systemImage: tab.icon)
+                    .padding(.vertical, 2)
+            }
+            .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(200)
+            .toolbar(removing: .sidebarToggle)
+        } detail: {
+            detail
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .navigationTitle(L10n.t(state.settingsTab.titleKey))
         }
-        .padding(16)
-        .frame(width: 620, height: 560)
+        .frame(width: 800, height: 580)
+    }
+
+    @ViewBuilder private var detail: some View {
+        switch state.settingsTab {
+        case .general:       GeneralTab()
+        case .terminal:      TerminalTab()
+        case .prodGuard:     GuardTab()
+        case .agents:        AgentsTab()
+        case .notifications: NotificationsTab()
+        case .about:         AboutTab()
+        }
     }
 }
 
