@@ -1,5 +1,5 @@
 cask "notchline" do
-  version "1.0"
+  version "1.1"
   sha256 :no_check
 
   url "https://github.com/PinkmanXXX/Notchline/releases/download/v#{version}/Notchline.dmg"

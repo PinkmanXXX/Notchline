@@ -16,7 +16,7 @@ it says so, green or red, and a click takes you back to the terminal it ran in.
 
 ![A running command](../Screenshots/running.png)
 
-> **v1.0.** Shell support is zsh only for now; bash and fish are next.
+> **v1.1.** Shell support is zsh only for now; bash and fish are next.
 
 ## The island
 

@@ -1,5 +1,5 @@
 APP     := Notchline
-VERSION := 1.0
+VERSION := 1.1
 BUNDLE  := $(APP).app
 BINDIR   = $(shell swift build -c release --arch arm64 --arch x86_64 --show-bin-path)
 BIN      = $(BINDIR)/$(APP)
