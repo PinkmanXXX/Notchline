@@ -93,18 +93,20 @@ jobs:
         with:
           files: Notchline.dmg
           body: |
-            Universal binary — Apple silicon and Intel. Requires macOS 14 or later.
+            Для macOS 14 и новее, Apple Silicon и Intel.
 
-            **Install**
+            **Установка**
+
+            Скачайте `Notchline.dmg` ниже и перетащите Notchline в «Программы».
+            Сборка не подписана сертификатом Apple, поэтому при первом запуске
+            откройте «Системные настройки → Конфиденциальность и безопасность»
+            и нажмите «Всё равно открыть».
+
+            Или одной командой — тогда этот шаг не нужен:
 
             ```sh
-            curl -fsSL https://raw.githubusercontent.com/USERNAME/Notchline/main/scripts/install.sh | bash
+            curl -fsSL https://raw.githubusercontent.com/PinkmanXXX/notchline/main/scripts/install.sh | bash
             ```
-
-            Or download the DMG below and drag Notchline into Applications.
-            This build is not notarised, so on first launch either use the
-            installer above (it clears the quarantine flag) or right-click the
-            app and choose Open.
 
       - uses: actions/upload-artifact@v4
         with:

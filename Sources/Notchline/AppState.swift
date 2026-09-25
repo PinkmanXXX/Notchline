@@ -500,7 +500,7 @@ final class AppState: ObservableObject {
 
     func loadSampleTasks(waiting: Bool) {
         let now = Date()
-        tasks = [ScriptTask(id: "pid-1", pid: 1, tty: "", title: "Deploy api", detail: "3 of 7 hosts",
+        tasks = [ScriptTask(id: "pid-1", pid: 1, tty: "", title: "Деплой api", detail: "3 из 7 серверов",
                             progress: 0.42, started: now.addingTimeInterval(-95), updated: now)]
         if waiting {
             tasks.insert(ScriptTask(id: "agent-claude-1", pid: 1, tty: "", title: "Claude Code · web",

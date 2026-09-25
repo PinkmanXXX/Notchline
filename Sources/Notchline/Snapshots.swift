@@ -14,7 +14,7 @@ enum Snapshots {
         state.historyWritesSuspended = true   // sample commands must not replace the real history
         defer { state.prefs = original }      // prefs persist on every change
         var prefs = Prefs()
-        prefs.lang = .en                   // the images go into the English README
+        prefs.lang = .ru                   // the images go into the Russian README
         state.prefs = prefs
 
         var notch = ScreenGeometry()
