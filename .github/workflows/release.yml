@@ -53,8 +53,8 @@ jobs:
 
       - name: Verify both slices are present
         run: |
-          for bin in NotchTape notch; do
-            lipo -archs NotchTape.app/Contents/MacOS/$bin | tee archs.txt
+          for bin in Notchline notch; do
+            lipo -archs Notchline.app/Contents/MacOS/$bin | tee archs.txt
             grep -q arm64  archs.txt || { echo "::error::arm64 slice missing in $bin";  exit 1; }
             grep -q x86_64 archs.txt || { echo "::error::x86_64 slice missing in $bin"; exit 1; }
           done
@@ -65,15 +65,15 @@ jobs:
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           codesign --force --deep --options runtime --timestamp \
-                   --sign "Developer ID Application: $TEAM_ID" NotchTape.app
-          codesign --verify --strict --verbose=2 NotchTape.app
+                   --sign "Developer ID Application: $TEAM_ID" Notchline.app
+          codesign --verify --strict --verbose=2 Notchline.app
 
       - name: Pack DMG
         run: |
           rm -rf dmg && mkdir dmg
-          cp -R NotchTape.app dmg/
+          cp -R Notchline.app dmg/
           ln -s /Applications dmg/Applications
-          hdiutil create -volname NotchTape -srcfolder dmg -ov -format UDZO NotchTape.dmg
+          hdiutil create -volname Notchline -srcfolder dmg -ov -format UDZO Notchline.dmg
 
       - name: Notarise and staple
         if: env.SIGNED == '1'
@@ -82,31 +82,31 @@ jobs:
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          xcrun notarytool submit NotchTape.dmg \
+          xcrun notarytool submit Notchline.dmg \
                 --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" \
                 --team-id "$TEAM_ID" --wait
-          xcrun stapler staple NotchTape.dmg
+          xcrun stapler staple Notchline.dmg
 
       - name: Attach to the release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: NotchTape.dmg
+          files: Notchline.dmg
           body: |
             Universal binary — Apple silicon and Intel. Requires macOS 14 or later.
 
             **Install**
 
             ```sh
-            curl -fsSL https://raw.githubusercontent.com/USERNAME/NotchTape/main/scripts/install.sh | bash
+            curl -fsSL https://raw.githubusercontent.com/USERNAME/Notchline/main/scripts/install.sh | bash
             ```
 
-            Or download the DMG below and drag NotchTape into Applications.
+            Or download the DMG below and drag Notchline into Applications.
             This build is not notarised, so on first launch either use the
             installer above (it clears the quarantine flag) or right-click the
             app and choose Open.
 
       - uses: actions/upload-artifact@v4
         with:
-          name: NotchTape-dmg
-          path: NotchTape.dmg
+          name: Notchline-dmg
+          path: Notchline.dmg

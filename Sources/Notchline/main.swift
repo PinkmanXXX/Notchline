@@ -10,6 +10,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         NotchController.shared.rebuild()
         AppState.shared.start()
+        Migration.repointHooks()
+        AppState.shared.refreshHookStatus()
         buildStatusItem()
 
         NotificationCenter.default.addObserver(
@@ -24,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func buildStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.image = NSImage(systemSymbolName: "terminal",
-                                     accessibilityDescription: "NotchTape")
+                                     accessibilityDescription: "Notchline")
         let menu = NSMenu()
         menu.delegate = self
         item.menu = menu
@@ -46,6 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
 // top-level code runs on the main thread; Swift 5 mode just does not know it
 MainActor.assumeIsolated {
+    Migration.moveSupportFolder()   // before anything creates the new folder
     #if DEBUG
     if let i = CommandLine.arguments.firstIndex(of: "--snapshot"), i + 1 < CommandLine.arguments.count {
         let dir = URL(fileURLWithPath: CommandLine.arguments[i + 1])

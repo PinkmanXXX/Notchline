@@ -9,17 +9,17 @@ let infoPlist = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
     .appendingPathComponent("Resources/Info.plist").path
 
 let package = Package(
-    name: "NotchTape",
+    name: "Notchline",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "NotchTape", path: "Sources/NotchTape",
+            name: "Notchline", path: "Sources/Notchline",
             linkerSettings: [.unsafeFlags(["-Xlinker", "-sectcreate", "-Xlinker", "__TEXT",
                                            "-Xlinker", "__info_plist", "-Xlinker", infoPlist])]),
         // `notch`, for scripts; shipped inside the app and put on PATH by the shell hook
         .executableTarget(name: "notch", path: "Sources/notch"),
-        .testTarget(name: "NotchTapeTests", dependencies: ["NotchTape"], path: "Tests/NotchTapeTests"),
+        .testTarget(name: "NotchlineTests", dependencies: ["Notchline"], path: "Tests/NotchlineTests"),
         // drives the built debug app over its socket: `make e2e`
-        .testTarget(name: "NotchTapeE2ETests", path: "Tests/NotchTapeE2ETests")
+        .testTarget(name: "NotchlineE2ETests", path: "Tests/NotchlineE2ETests")
     ]
 )

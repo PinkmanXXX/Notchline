@@ -1,4 +1,4 @@
-# NotchTape
+# Notchline
 
 ![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-1f1f24)
 ![Universal](https://img.shields.io/badge/binary-universal%20(arm64%20%2B%20x86__64)-6B45E8)
@@ -67,7 +67,7 @@ or red toast, and exits with the command's own status. Every call from one scrip
 updates the same task; `--id` names one explicitly.
 
 `notch` ships inside the app, and the zsh hook puts it on `PATH`. Elsewhere, use
-`~/Library/Application Support/NotchTape/bin/notch`. With the app closed it does
+`~/Library/Application Support/Notchline/bin/notch`. With the app closed it does
 nothing and never fails a script.
 
 ## Coding agents
@@ -80,16 +80,16 @@ Agents in the island: working, waiting for you, done. Settings → Agents connec
 |---|---|---|
 | Claude Code | hooks merged into `~/.claude/settings.json` | working · tool calls · waiting for you · done |
 | Gemini CLI | hooks merged into `~/.gemini/settings.json` | working · tool calls · waiting for you · done |
-| GitHub Copilot in VS Code | its own file, `~/.copilot/hooks/notchtape.json` | working · tool calls · done |
+| GitHub Copilot in VS Code | its own file, `~/.copilot/hooks/notchline.json` | working · tool calls · done |
 | Cursor | non-blocking hooks in `~/.cursor/hooks.json` | tool calls · done |
 | Codex | a line for `~/.codex/config.toml` | done |
 | Aider | two lines for `~/.aider.conf.yml` | done |
 
 Merged files keep everything else in them, and the first change leaves a
-`.notchtape-backup` copy beside the file. TOML and YAML are left for you to paste into.
+`.notchline-backup` copy beside the file. TOML and YAML are left for you to paste into.
 
 Cursor gets only its non-blocking hooks: its blocking ones treat an empty answer as
-"deny", and NotchTape should never be able to allow or refuse anything an agent does.
+"deny", and Notchline should never be able to allow or refuse anything an agent does.
 For the same reason no hook answers with a decision: Claude's stays silent, the others
 print `{}`.
 
@@ -142,7 +142,7 @@ The hover panel shows the current shell's environments, production ones in red.
 Settings → Terminal → **Install for zsh** appends one line to `~/.zshrc`:
 
 ```zsh
-[[ -r "$HOME/Library/Application Support/NotchTape/shell/notchtape.zsh" ]] && source "$HOME/Library/Application Support/NotchTape/shell/notchtape.zsh"
+[[ -r "$HOME/Library/Application Support/Notchline/shell/notchline.zsh" ]] && source "$HOME/Library/Application Support/Notchline/shell/notchline.zsh"
 ```
 
 Open a new terminal tab and it is live. The line does nothing once the app is gone,
@@ -151,7 +151,7 @@ and **Remove** takes it out again.
 ### How it works
 
 The hook adds `preexec` and `precmd` functions that send short messages to a Unix
-socket in `~/Library/Application Support/NotchTape/notch.sock`: a command started, a
+socket in `~/Library/Application Support/Notchline/notch.sock`: a command started, a
 command ended, and on every prompt the shell's environment variables. `notch` talks to
 the same socket. It uses zsh's
 own `zsh/net/socket` module, so it costs no extra process, and when the app is not
@@ -180,13 +180,13 @@ A click on the closed island opens it pinned; the pin button in the panel pins a
 ## Building
 
 ```bash
-make run        # universal release build, assembled into NotchTape.app, launched
+make run        # universal release build, assembled into Notchline.app, launched
 make test       # unit tests: the wire format, production matching, ssh and kubeconfig parsing
 make e2e        # end to end: the real app, real zsh sessions and notch, in a throwaway home
-make dmg        # the same app, packed into NotchTape.dmg
+make dmg        # the same app, packed into Notchline.dmg
 ```
 
-`make e2e` runs the debug app with `NOTCHTAPE_TEST_HOME` pointing at a temporary folder,
+`make e2e` runs the debug app with `NOTCHLINE_TEST_HOME` pointing at a temporary folder,
 so it has its own socket, `.zshrc`, `.claude` and kubeconfig and never touches yours,
 and drives it the way people do: zsh sessions with the hook, `notch`, Claude Code hook
 events for every agent, kubeconfig and AWS profile switches, hover, pin and outside
@@ -194,9 +194,9 @@ clicks. Debug
 builds answer a `dump` request on the socket with their state, which is what the tests
 check.
 
-`swift build` then `.build/debug/NotchTape --snapshot <dir>` renders the island in
+`swift build` then `.build/debug/Notchline --snapshot <dir>` renders the island in
 each of its states to PNG with sample data — handy when the screen itself cannot be
-captured. `NOTCHTAPE_TRACE=1 .build/debug/NotchTape` prints every message it receives
+captured. `NOTCHLINE_TRACE=1 .build/debug/Notchline` prints every message it receives
 and the state after it.
 
 ## Roadmap

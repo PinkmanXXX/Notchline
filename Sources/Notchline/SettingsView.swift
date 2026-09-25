@@ -476,7 +476,7 @@ private struct AboutTab: View {
             if let icon = NSApp.applicationIconImage {
                 Image(nsImage: icon).resizable().frame(width: 96, height: 96)
             }
-            Text("NotchTape").font(.title.bold())
+            Text("Notchline").font(.title.bold())
             Text(L10n.t("tagline")).foregroundStyle(.secondary)
             Text(L10n.t("version", ["v": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.4.0"]))
                 .font(.caption).foregroundStyle(.secondary)

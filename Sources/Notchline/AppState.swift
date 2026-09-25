@@ -92,8 +92,8 @@ final class AppState: ObservableObject {
     func handle(_ message: ShellBridge.Message) {
         apply(message)
         #if DEBUG
-        // NOTCHTAPE_TRACE=1 .build/debug/NotchTape: every message and the state after it
-        if ProcessInfo.processInfo.environment["NOTCHTAPE_TRACE"] != nil {
+        // NOTCHLINE_TRACE=1 .build/debug/Notchline: every message and the state after it
+        if ProcessInfo.processInfo.environment["NOTCHLINE_TRACE"] != nil {
             let t = tasks.map { "\($0.title)|\($0.detail)|\($0.progress.map { String($0) } ?? "-")|wait=\($0.waiting)" }
             FileHandle.standardError.write(Data("""
                 in: \(message)
@@ -377,6 +377,10 @@ final class AppState: ObservableObject {
         NotchController.shared.layout(animated: true)
     }
 
+    func refreshHookStatus() {
+        hookInstalled = ShellIntegration.isInstalled
+    }
+
     func removeHook() throws {
         try ShellIntegration.uninstall()
         hookInstalled = ShellIntegration.isInstalled
@@ -470,7 +474,7 @@ final class AppState: ObservableObject {
         visibleRunning = running
         recent = [cmd(7, "docker compose up -d --build", "/Projects/web", ago: 400, took: 188, exit: 0),
                   cmd(6, "terraform plan -out=tfplan", "/infra/prod", ago: 1300, took: 41, exit: 1),
-                  cmd(5, "swift build -c release", "/Projects/notchtape", ago: 3900, took: 74, exit: 0)]
+                  cmd(5, "swift build -c release", "/Projects/notchline", ago: 3900, took: 74, exit: 0)]
         shells = [1, 2]
         hookInstalled = true
     }

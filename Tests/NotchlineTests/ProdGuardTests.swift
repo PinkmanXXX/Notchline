@@ -1,5 +1,5 @@
 import XCTest
-@testable import NotchTape
+@testable import Notchline
 
 final class ProdRulesTests: XCTestCase {
     let defaults = ["prod", "production", "prd"]

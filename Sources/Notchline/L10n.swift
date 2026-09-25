@@ -14,10 +14,10 @@ enum L10n {
 
     private static let table: [Lang: [String: String]] = [
         .en: [
-            "agentHint.claude": "Hooks for prompts, tool calls, permission requests and the end of each turn, next to your own. The file is rewritten with sorted keys; the original is kept as settings.json.notchtape-backup.",
+            "agentHint.claude": "Hooks for prompts, tool calls, permission requests and the end of each turn, next to your own. The file is rewritten with sorted keys; the original is kept as settings.json.notchline-backup.",
             "agentHint.gemini": "The same events through Gemini CLI hooks: BeforeAgent, BeforeTool, Notification, AfterAgent. Your settings.json keeps its other keys; a backup is left beside it.",
             "agentHint.copilot": "Agent mode in VS Code: a hooks file of its own in ~/.copilot/hooks, nothing else is touched. Hooks are a VS Code preview and on by default (chat.useHooks).",
-            "agentHint.cursor": "Only Cursor's non-blocking hooks — tool calls, stop, session end — so NotchTape can never allow or deny anything the agent does. Cursor has no \"waiting for you\" hook.",
+            "agentHint.cursor": "Only Cursor's non-blocking hooks — tool calls, stop, session end — so Notchline can never allow or deny anything the agent does. Cursor has no \"waiting for you\" hook.",
             "agentHint.codex": "Paste into ~/.codex/config.toml. Codex calls it when a turn completes.",
             "agentHint.aider": "Paste into ~/.aider.conf.yml. Aider runs it when a reply is done and it waits for you.",
             "vscode": "VS Code",
@@ -31,7 +31,7 @@ enum L10n {
             "agents": "Agents",
             "agentsIntro": "Coding agents in the island: working, waiting for you, done. A permission prompt or a question turns amber with a toast. Each one is wired through the notch command.",
             "agentConnected": "Connected", "agentNotConnected": "Not connected", "connectAgent": "Connect",
-            "claudeHint": "Adds hooks for prompts, tool calls, notifications and stops next to your own. The file is rewritten with sorted keys; the original is kept as settings.json.notchtape-backup.",
+            "claudeHint": "Adds hooks for prompts, tool calls, notifications and stops next to your own. The file is rewritten with sorted keys; the original is kept as settings.json.notchline-backup.",
             "codexHint": "Paste this line into ~/.codex/config.toml. Codex calls it at the end of each turn.",
             "otherAgents": "Other agents",
             "otherAgentsHint": "Anything that can run a command on an event can use notch: notch start, notch wait \"Needs input\", notch done.",
@@ -57,7 +57,7 @@ enum L10n {
             "settings": "Settings", "general": "General", "terminal": "Terminal", "about": "About",
             "tagline": "Long-running commands, in the notch.",
             "version": "Version {v} · macOS 14+",
-            "openSettings": "Settings…", "quit": "Quit NotchTape",
+            "openSettings": "Settings…", "quit": "Quit Notchline",
 
             "language": "Language",
             "show": "Show", "showAuto": "While running", "showAlways": "Always", "showHidden": "Hide",
@@ -76,7 +76,7 @@ enum L10n {
             "emptyHint": "Commands that take longer than {s} s show up here.",
             "done": "Done", "failed": "Failed · exit {c}",
             "connect": "Connect terminal", "connectButton": "Connect",
-            "connectHint": "Add NotchTape to zsh to see long-running commands here.",
+            "connectHint": "Add Notchline to zsh to see long-running commands here.",
             "waiting": "waiting for the first command", "liveShells": "{n} shells connected",
 
             "integration": "Shell integration",
@@ -97,10 +97,10 @@ enum L10n {
             "ignoreHint": "Programs that run for as long as you use them. First word of the command, comma-separated."
         ],
         .ru: [
-            "agentHint.claude": "Хуки на промпт, вызовы инструментов, запросы разрешений и конец хода — рядом с вашими. Файл перезаписывается с отсортированными ключами; оригинал сохраняется как settings.json.notchtape-backup.",
+            "agentHint.claude": "Хуки на промпт, вызовы инструментов, запросы разрешений и конец хода — рядом с вашими. Файл перезаписывается с отсортированными ключами; оригинал сохраняется как settings.json.notchline-backup.",
             "agentHint.gemini": "Те же события через хуки Gemini CLI: BeforeAgent, BeforeTool, Notification, AfterAgent. Остальные ключи settings.json остаются; рядом сохраняется копия.",
             "agentHint.copilot": "Режим агента в VS Code: отдельный файл хуков в ~/.copilot/hooks, больше ничего не трогается. Хуки в VS Code — preview-функция и включены по умолчанию (chat.useHooks).",
-            "agentHint.cursor": "Только неблокирующие хуки Cursor — вызовы инструментов, остановка, конец сессии, — поэтому NotchTape никогда не разрешает и не запрещает агенту действия. Хука «ждёт вас» у Cursor нет.",
+            "agentHint.cursor": "Только неблокирующие хуки Cursor — вызовы инструментов, остановка, конец сессии, — поэтому Notchline никогда не разрешает и не запрещает агенту действия. Хука «ждёт вас» у Cursor нет.",
             "agentHint.codex": "Вставьте в ~/.codex/config.toml. Codex вызывает это в конце каждого хода.",
             "agentHint.aider": "Вставьте в ~/.aider.conf.yml. Aider вызывает это, когда ответ готов и он ждёт вас.",
             "vscode": "VS Code",
@@ -114,7 +114,7 @@ enum L10n {
             "agents": "Агенты",
             "agentsIntro": "Агенты для кода в острове: работает, ждёт вас, готово. Запрос разрешения или вопрос подсвечиваются янтарным и приходят тостом.",
             "agentConnected": "Подключён", "agentNotConnected": "Не подключён", "connectAgent": "Подключить",
-            "claudeHint": "Добавляет хуки на промпт, вызовы инструментов, уведомления и остановку — рядом с вашими. Файл перезаписывается с отсортированными ключами; оригинал сохраняется как settings.json.notchtape-backup.",
+            "claudeHint": "Добавляет хуки на промпт, вызовы инструментов, уведомления и остановку — рядом с вашими. Файл перезаписывается с отсортированными ключами; оригинал сохраняется как settings.json.notchline-backup.",
             "codexHint": "Вставьте эту строку в ~/.codex/config.toml. Codex вызывает её в конце каждого хода.",
             "otherAgents": "Другие агенты",
             "otherAgentsHint": "Всё, что умеет запускать команду по событию, может пользоваться notch: notch start, notch wait \"Нужен ответ\", notch done.",
@@ -140,7 +140,7 @@ enum L10n {
             "settings": "Настройки", "general": "Основные", "terminal": "Терминал", "about": "О программе",
             "tagline": "Долгие команды — прямо в вырезе экрана.",
             "version": "Версия {v} · macOS 14+",
-            "openSettings": "Настройки…", "quit": "Выйти из NotchTape",
+            "openSettings": "Настройки…", "quit": "Выйти из Notchline",
 
             "language": "Язык",
             "show": "Показывать", "showAuto": "Во время команд", "showAlways": "Всегда", "showHidden": "Скрыть",
@@ -159,7 +159,7 @@ enum L10n {
             "emptyHint": "Здесь появятся команды, которые идут дольше {s} с.",
             "done": "Готово", "failed": "Ошибка · код {c}",
             "connect": "Подключить терминал", "connectButton": "Подключить",
-            "connectHint": "Подключите NotchTape к zsh, чтобы видеть здесь долгие команды.",
+            "connectHint": "Подключите Notchline к zsh, чтобы видеть здесь долгие команды.",
             "waiting": "ждём первую команду", "liveShells": "подключено оболочек: {n}",
 
             "integration": "Подключение к оболочке",
@@ -180,10 +180,10 @@ enum L10n {
             "ignoreHint": "Программы, которые работают, пока вы ими пользуетесь. Первое слово команды, через запятую."
         ],
         .zh: [
-            "agentHint.claude": "为提示、工具调用、权限请求和每轮结束添加钩子，与你已有的钩子并存。文件会按键排序重写，原文件保存为 settings.json.notchtape-backup。",
+            "agentHint.claude": "为提示、工具调用、权限请求和每轮结束添加钩子，与你已有的钩子并存。文件会按键排序重写，原文件保存为 settings.json.notchline-backup。",
             "agentHint.gemini": "通过 Gemini CLI 钩子接收相同事件：BeforeAgent、BeforeTool、Notification、AfterAgent。settings.json 的其他键保持不变，并在旁边保留备份。",
             "agentHint.copilot": "VS Code 中的智能体模式：在 ~/.copilot/hooks 中使用独立的钩子文件，不改动其他内容。钩子是 VS Code 预览功能，默认开启（chat.useHooks）。",
-            "agentHint.cursor": "只使用 Cursor 的非阻塞钩子——工具调用、停止、会话结束——因此 NotchTape 永远不会允许或拒绝智能体的任何操作。Cursor 没有“等待你”的钩子。",
+            "agentHint.cursor": "只使用 Cursor 的非阻塞钩子——工具调用、停止、会话结束——因此 Notchline 永远不会允许或拒绝智能体的任何操作。Cursor 没有“等待你”的钩子。",
             "agentHint.codex": "粘贴到 ~/.codex/config.toml。Codex 在每轮结束时调用。",
             "agentHint.aider": "粘贴到 ~/.aider.conf.yml。Aider 在回复完成、等待你时调用。",
             "vscode": "VS Code",
@@ -197,7 +197,7 @@ enum L10n {
             "agents": "智能体",
             "agentsIntro": "编程智能体显示在刘海中：工作中、等待你、完成。权限请求或提问会以琥珀色提示并弹出通知。",
             "agentConnected": "已连接", "agentNotConnected": "未连接", "connectAgent": "连接",
-            "claudeHint": "为提示、工具调用、通知和停止添加钩子，与你已有的钩子并存。文件会按键排序重写，原文件保存为 settings.json.notchtape-backup。",
+            "claudeHint": "为提示、工具调用、通知和停止添加钩子，与你已有的钩子并存。文件会按键排序重写，原文件保存为 settings.json.notchline-backup。",
             "codexHint": "将此行粘贴到 ~/.codex/config.toml。Codex 会在每轮结束时调用它。",
             "otherAgents": "其他智能体",
             "otherAgentsHint": "任何能在事件发生时运行命令的工具都可以使用 notch：notch start、notch wait \"需要输入\"、notch done。",
@@ -223,7 +223,7 @@ enum L10n {
             "settings": "设置", "general": "通用", "terminal": "终端", "about": "关于",
             "tagline": "长时间运行的命令，显示在刘海处。",
             "version": "版本 {v} · macOS 14+",
-            "openSettings": "设置…", "quit": "退出 NotchTape",
+            "openSettings": "设置…", "quit": "退出 Notchline",
 
             "language": "语言",
             "show": "显示", "showAuto": "运行时", "showAlways": "始终", "showHidden": "隐藏",
@@ -242,7 +242,7 @@ enum L10n {
             "emptyHint": "运行超过 {s} 秒的命令会显示在这里。",
             "done": "完成", "failed": "失败 · 退出码 {c}",
             "connect": "连接终端", "connectButton": "连接",
-            "connectHint": "将 NotchTape 接入 zsh，即可在此看到长时间运行的命令。",
+            "connectHint": "将 Notchline 接入 zsh，即可在此看到长时间运行的命令。",
             "waiting": "等待第一条命令", "liveShells": "已连接 {n} 个 shell",
 
             "integration": "Shell 集成",

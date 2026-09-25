@@ -1,4 +1,4 @@
-APP     := NotchTape
+APP     := Notchline
 VERSION := 0.4.0
 BUNDLE  := $(APP).app
 BINDIR   = $(shell swift build -c release --arch arm64 --arch x86_64 --show-bin-path)
@@ -24,8 +24,10 @@ bundle: build icon
 	@lipo -archs $(BUNDLE)/Contents/MacOS/notch
 	@echo "built $(BUNDLE)"
 
-## AppIcon.icns from the 1024 master
+## AppIcon.icns from the 1024 master, itself rendered from the SVG
 icon: Resources/AppIcon.icns
+AppIcon/AppIcon-1024.png: AppIcon/AppIcon.svg scripts/render-icon.swift
+	swift scripts/render-icon.swift $< $@
 Resources/AppIcon.icns: AppIcon/AppIcon-1024.png
 	rm -rf /tmp/$(APP).iconset && mkdir -p /tmp/$(APP).iconset
 	for s in 16 32 128 256 512; do \
@@ -45,12 +47,12 @@ run: bundle
 
 ## unit tests
 test:
-	swift test --skip NotchTapeE2ETests
+	swift test --skip NotchlineE2ETests
 
 ## end to end: the debug app, real zsh sessions and `notch`, in a throwaway home
 e2e:
 	swift build
-	swift test --filter NotchTapeE2ETests
+	swift test --filter NotchlineE2ETests
 
 clean:
 	rm -rf .build $(BUNDLE) dmg $(APP).dmg Resources/AppIcon.icns

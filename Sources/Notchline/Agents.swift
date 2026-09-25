@@ -38,7 +38,7 @@ enum Agent: String, CaseIterable, Identifiable {
         switch self {
         case .claude:  return "~/.claude/settings.json"
         case .gemini:  return "~/.gemini/settings.json"
-        case .copilot: return "~/.copilot/hooks/notchtape.json"
+        case .copilot: return "~/.copilot/hooks/notchline.json"
         case .cursor:  return "~/.cursor/hooks.json"
         case .codex:   return "~/.codex/config.toml"
         case .aider:   return "~/.aider.conf.yml"
@@ -137,7 +137,7 @@ enum AgentIntegration {
         case .gemini:
             // Claude-like nesting, timeout in milliseconds
             var e: [String: Any] = ["hooks": [["type": "command", "command": agent.command,
-                                               "name": "notchtape", "timeout": 5000]]]
+                                               "name": "notchline", "timeout": 5000]]]
             if event == "BeforeTool" { e["matcher"] = "*" }
             return e
         default:
@@ -186,7 +186,7 @@ enum AgentIntegration {
     }
 
     private static func backup(_ url: URL) {
-        let copy = url.appendingPathExtension("notchtape-backup")
+        let copy = url.appendingPathExtension("notchline-backup")
         guard FileManager.default.fileExists(atPath: url.path),
               !FileManager.default.fileExists(atPath: copy.path) else { return }
         try? FileManager.default.copyItem(at: url, to: copy)

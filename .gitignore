@@ -6,5 +6,5 @@ dmg/
 *.dmg
 .build/
 _archive/
-NotchTape.app/
+Notchline.app/
 Resources/AppIcon.icns

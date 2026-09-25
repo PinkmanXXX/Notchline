@@ -1,7 +1,7 @@
-// notch — show a script's progress in the NotchTape island.
+// notch — show a script's progress in the Notchline island.
 //
 // Talks to the app over the same Unix socket as the shell hook. It never fails a
-// script because of NotchTape: with the app closed every command still exits 0
+// script because of Notchline: with the app closed every command still exits 0
 // (`run` exits with the wrapped command's status).
 
 import Foundation
@@ -36,7 +36,7 @@ struct Options {
     // $HOME first, like the zsh hook, so both always reach the same app
     var socket = ProcessInfo.processInfo.environment["NOTCH_SOCKET"]
         ?? (ProcessInfo.processInfo.environment["HOME"] ?? NSHomeDirectory())
-            + "/Library/Application Support/NotchTape/notch.sock"
+            + "/Library/Application Support/Notchline/notch.sock"
     var positional: [String] = []
 }
 

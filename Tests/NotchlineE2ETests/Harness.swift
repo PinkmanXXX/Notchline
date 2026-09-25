@@ -6,12 +6,12 @@ import XCTest
 final class AppHarness {
     static let root = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-    static let appBinary = root.appendingPathComponent(".build/debug/NotchTape")
+    static let appBinary = root.appendingPathComponent(".build/debug/Notchline")
     static let cliBinary = root.appendingPathComponent(".build/debug/notch")
 
     /// Short on purpose: a Unix socket path must fit in 104 bytes.
     let home: String
-    var support: String { home + "/Library/Application Support/NotchTape" }
+    var support: String { home + "/Library/Application Support/Notchline" }
     var socket: String { support + "/notch.sock" }
     var cli: String { support + "/bin/notch" }
 
@@ -26,8 +26,8 @@ final class AppHarness {
         try FileManager.default.createDirectory(atPath: support, withIntermediateDirectories: true)
 
         if hooked {
-            let line = "[[ -r \"$HOME/Library/Application Support/NotchTape/shell/notchtape.zsh\" ]] && "
-                + "source \"$HOME/Library/Application Support/NotchTape/shell/notchtape.zsh\"\n"
+            let line = "[[ -r \"$HOME/Library/Application Support/Notchline/shell/notchline.zsh\" ]] && "
+                + "source \"$HOME/Library/Application Support/Notchline/shell/notchline.zsh\"\n"
             try line.write(toFile: home + "/.zshrc", atomically: true, encoding: .utf8)
         }
 
@@ -47,7 +47,7 @@ final class AppHarness {
         }
         let process = Process()
         process.executableURL = Self.appBinary
-        process.environment = ["NOTCHTAPE_TEST_HOME": home, "HOME": home,
+        process.environment = ["NOTCHLINE_TEST_HOME": home, "HOME": home,
                                "PATH": "/usr/bin:/bin:/usr/sbin:/sbin"]
         process.standardOutput = FileHandle.nullDevice
         process.standardError = FileHandle.nullDevice
@@ -173,7 +173,7 @@ final class AppHarness {
     func shell(env: [String: String] = [:]) throws -> Shell {
         let zdot = home + "/zdot"
         try FileManager.default.createDirectory(atPath: zdot, withIntermediateDirectories: true)
-        let rc = "source \"$HOME/Library/Application Support/NotchTape/shell/notchtape.zsh\"\n"
+        let rc = "source \"$HOME/Library/Application Support/Notchline/shell/notchline.zsh\"\n"
         try rc.write(toFile: zdot + "/.zshrc", atomically: true, encoding: .utf8)
         return try Shell(env: ["HOME": home, "ZDOTDIR": zdot, "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
                                "TERM": "dumb", "LANG": "en_US.UTF-8"].merging(env) { _, n in n })

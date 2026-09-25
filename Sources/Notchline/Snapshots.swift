@@ -2,7 +2,7 @@
 import AppKit
 import SwiftUI
 
-/// `NotchTape --snapshot <dir>` renders the island in its states to PNGs with
+/// `Notchline --snapshot <dir>` renders the island in its states to PNGs with
 /// sample commands, for checking layout without screen-recording rights.
 /// Debug builds only.
 @MainActor

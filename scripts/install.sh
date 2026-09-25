@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# NotchTape installer.
-#   curl -fsSL https://raw.githubusercontent.com/USERNAME/NotchTape/main/scripts/install.sh | bash
+# Notchline installer.
+#   curl -fsSL https://raw.githubusercontent.com/USERNAME/Notchline/main/scripts/install.sh | bash
 set -euo pipefail
 
-REPO="USERNAME/NotchTape"
-APP="NotchTape"
+REPO="USERNAME/Notchline"
+APP="Notchline"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"; hdiutil detach "/Volumes/$APP" -quiet 2>/dev/null || true' EXIT
 

@@ -3,7 +3,7 @@ import XCTest
 /// End to end: the real app binary, real zsh sessions with the real hook, the
 /// real `notch` command, all in a throwaway home. Needs a GUI session (the app
 /// puts its window on screen) and a prior `swift build`: run `make e2e`.
-final class NotchTapeE2ETests: XCTestCase {
+final class NotchlineE2ETests: XCTestCase {
     var app: AppHarness!
 
     override func setUpWithError() throws {
@@ -168,7 +168,7 @@ final class NotchTapeE2ETests: XCTestCase {
         let hooks = settings["hooks"] as? [String: [[String: Any]]] ?? [:]
         XCTAssertEqual(settings["model"] as? String, "opus")
         XCTAssertEqual(hooks["Stop"]?.count, 2, "the existing Stop hook stays")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: claudeDir + "/settings.json.notchtape-backup"))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: claudeDir + "/settings.json.notchline-backup"))
 
         // run the installed command exactly as Claude Code would: through a shell, event on stdin
         let command = ((hooks["UserPromptSubmit"]?.first?["hooks"] as? [[String: Any]])?.first?["command"] as? String) ?? ""
@@ -270,7 +270,7 @@ final class NotchTapeE2ETests: XCTestCase {
     }
 
     func testCopilotInVSCodeGetsItsOwnHooksFile() throws {
-        let path = app.home + "/.copilot/hooks/notchtape.json"
+        let path = app.home + "/.copilot/hooks/notchline.json"
         XCTAssertEqual((app.debug("installAgent", "copilot")["agents"] as? [String: Bool])?["copilot"], true)
         let hooks = try readJSON(path)["hooks"] as? [String: [[String: Any]]] ?? [:]
         XCTAssertEqual(Set(hooks.keys), ["UserPromptSubmit", "PreToolUse", "Stop"])
@@ -469,7 +469,7 @@ final class NotchTapeE2ETests: XCTestCase {
         XCTAssertTrue(app.debug("installHook").bool("hookInstalled"))
         let installed = try String(contentsOfFile: rc, encoding: .utf8)
         XCTAssertTrue(installed.hasPrefix(original))
-        XCTAssertTrue(installed.contains("NotchTape/shell/notchtape.zsh"))
+        XCTAssertTrue(installed.contains("Notchline/shell/notchline.zsh"))
 
         XCTAssertTrue(app.debug("installHook").bool("hookInstalled"))
         let twice = try String(contentsOfFile: rc, encoding: .utf8)
@@ -489,6 +489,52 @@ final class NotchTapeE2ETests: XCTestCase {
         XCTAssertFalse(s.bool("connected"))
         XCTAssertTrue(app.debug("installHook").bool("connected"))
         try app.waitFor("the island to hide once connected") { $0.string("mode") == "idle" }
+    }
+
+    /// The app used to be NotchTape: its folder, its line in .zshrc and the
+    /// agents' hooks all move over on the first launch under the new name.
+    func testMigratesFromTheOldName() throws {
+        app.cleanUp()
+        app = try AppHarness(hooked: false)
+        let old = "Notch" + "Tape"
+        let oldDir = app.home + "/Library/Application Support/\(old)"
+        try FileManager.default.removeItem(atPath: app.support)
+        try FileManager.default.createDirectory(atPath: oldDir + "/bin", withIntermediateDirectories: true)
+        try JSONSerialization.data(withJSONObject: ["lang": "ru", "showAfter": 1, "notifyAfter": 3, "sound": false])
+            .write(to: URL(fileURLWithPath: oldDir + "/prefs.json"))
+        let oldLine = "[[ -r \"$HOME/Library/Application Support/\(old)/shell/\(old.lowercased()).zsh\" ]] && "
+            + "source \"$HOME/Library/Application Support/\(old)/shell/\(old.lowercased()).zsh\""
+        try "export EDITOR=vim\n\n# \(old): long-running commands in the notch\n\(oldLine)\n"
+            .write(toFile: app.home + "/.zshrc", atomically: true, encoding: .utf8)
+        try FileManager.default.createDirectory(atPath: app.home + "/.claude", withIntermediateDirectories: true)
+        let oldHook = ["type": "command", "command": "\"\(oldDir)/bin/notch\" agent claude", "timeout": 5] as [String: Any]
+        try JSONSerialization.data(withJSONObject: ["hooks": ["Stop": [["hooks": [oldHook]]]]])
+            .write(to: URL(fileURLWithPath: app.home + "/.claude/settings.json"))
+
+        try app.launch()
+        let s = try app.waitFor("the migrated state") { $0.bool("hookInstalled") }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: oldDir + "/prefs.json"), "the old folder moved")
+        let prefs = try JSONSerialization.jsonObject(
+            with: Data(contentsOf: URL(fileURLWithPath: app.support + "/prefs.json"))) as? [String: Any]
+        XCTAssertEqual(prefs?["lang"] as? String, "ru", "settings came along")
+        XCTAssertEqual(s.string("mode"), "idle", "connected, so nothing to ask")
+
+        let rc = try String(contentsOfFile: app.home + "/.zshrc", encoding: .utf8)
+        XCTAssertTrue(rc.hasPrefix("export EDITOR=vim"))
+        XCTAssertFalse(rc.contains(old), "no trace of the old name: \(rc)")
+        XCTAssertTrue(rc.contains("Notchline/shell/notchline.zsh"))
+
+        let claude = try String(contentsOfFile: app.home + "/.claude/settings.json", encoding: .utf8)
+            .replacingOccurrences(of: "\\/", with: "/")
+        XCTAssertFalse(claude.contains("\(old)/bin/notch"), "hooks repointed: \(claude)")
+        XCTAssertTrue(claude.contains("Notchline/bin/notch"))
+        XCTAssertEqual((s["agents"] as? [String: Bool])?["claude"], true)
+
+        // and the repointed hook works
+        let sh = try app.shell()
+        defer { sh.kill() }
+        sh.type("sleep 1.5")
+        try app.waitFor("a command through the new hook") { $0.commands("recent").first == "sleep 1.5" }
     }
 
     func testTheHookPutsNotchOnPath() throws {

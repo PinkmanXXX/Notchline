@@ -98,13 +98,13 @@ struct Prefs: Codable {
     }
 }
 
-/// Where "home" is. Debug builds honour `NOTCHTAPE_TEST_HOME`, so end-to-end
+/// Where "home" is. Debug builds honour `NOTCHLINE_TEST_HOME`, so end-to-end
 /// tests run a full app against a throwaway home: its own support folder,
 /// socket, `.zshrc`, `.claude` and kubeconfig, never the real ones.
 enum Paths {
     nonisolated static let home: String = {
         #if DEBUG
-        if let test = ProcessInfo.processInfo.environment["NOTCHTAPE_TEST_HOME"], !test.isEmpty { return test }
+        if let test = ProcessInfo.processInfo.environment["NOTCHLINE_TEST_HOME"], !test.isEmpty { return test }
         #endif
         return NSHomeDirectory()
     }()
@@ -119,7 +119,7 @@ final class PrefsStore {
 
     nonisolated static let directory: URL = {
         let base = URL(fileURLWithPath: Paths.home)
-            .appendingPathComponent("Library/Application Support/NotchTape", isDirectory: true)
+            .appendingPathComponent("Library/Application Support/Notchline", isDirectory: true)
         try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
         return base
     }()
