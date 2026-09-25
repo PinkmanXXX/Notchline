@@ -54,6 +54,9 @@ MainActor.assumeIsolated {
     }
     #endif
     let app = NSApplication.shared
+    // before `run`, not in didFinishLaunching: by then an unbundled build has
+    // already shown up in the Dock
+    app.setActivationPolicy(.accessory)
     let delegate = AppDelegate()
     app.delegate = delegate
     app.run()
