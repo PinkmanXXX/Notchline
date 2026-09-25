@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         AppState.shared.start()
         Migration.repointHooks()
         AppState.shared.refreshHookStatus()
+        UpdateChecker.shared.start()
         buildStatusItem()
 
         NotificationCenter.default.addObserver(
@@ -36,6 +37,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// Built on every open, so a language switch shows up without a relaunch.
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
+        if case let .available(version, _, _) = UpdateChecker.shared.status {
+            menu.addItem(withTitle: L10n.t("updateMenu", ["v": version]), action: #selector(downloadUpdate),
+                         keyEquivalent: "").target = self
+            menu.addItem(.separator())
+        }
         menu.addItem(withTitle: L10n.t("openSettings"), action: #selector(openSettings), keyEquivalent: ",")
             .target = self
         menu.addItem(.separator())
@@ -43,6 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func openSettings() { SettingsWindow.show() }
+    @objc private func downloadUpdate() { UpdateChecker.shared.download() }
     @objc private func quit() { NSApp.terminate(nil) }
 }
 

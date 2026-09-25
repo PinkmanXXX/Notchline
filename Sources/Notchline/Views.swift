@@ -21,28 +21,6 @@ private let mono = Font.Design.monospaced
 /// One spring for everything the island does, so every change feels the same.
 let islandSpring = Animation.spring(duration: 0.5, bounce: 0.16)
 
-/// Two groups held symmetrically apart by a fixed gap, so the camera housing
-/// always lands in the gap however wide either side is.
-struct NotchSplit: Layout {
-    var gap: CGFloat
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        guard subviews.count == 2 else { return .zero }
-        let l = subviews[0].sizeThatFits(.unspecified), r = subviews[1].sizeThatFits(.unspecified)
-        return .init(width: max(l.width, r.width) * 2 + gap, height: max(l.height, r.height))
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        guard subviews.count == 2 else { return }
-        // `.unspecified` rather than the measured size: proposing the exact ideal
-        // width back can come out a hair short after rounding and truncate the text
-        subviews[0].place(at: .init(x: bounds.midX - gap / 2, y: bounds.midY),
-                          anchor: .trailing, proposal: .unspecified)
-        subviews[1].place(at: .init(x: bounds.midX + gap / 2, y: bounds.midY),
-                          anchor: .leading, proposal: .unspecified)
-    }
-}
-
 /// Left-to-right, wrapping onto new lines: for the environment chips.
 struct Flow: Layout {
     var spacing: CGFloat = 6
@@ -198,6 +176,16 @@ struct RootView: View {
     /// The strip's natural size, measured off-screen so the island can animate
     /// to it instead of taking it on at once.
     @State private var barSize: CGSize = .zero
+    /// The panel's natural height, measured the same way: one task makes a
+    /// short panel, a long history a tall one that scrolls.
+    @State private var panelHeight: CGFloat = 0
+
+    private var panelWidth: CGFloat { (edge.isVertical ? Metrics.sidePanelSize : Metrics.panelSize).width }
+    private var panelMaxHeight: CGFloat { (edge.isVertical ? Metrics.sidePanelSize : Metrics.panelSize).height }
+    private var panelFit: CGFloat {
+        let h = panelHeight > 0 ? panelHeight : panelMaxHeight + m.under
+        return min(max(h, 150 + m.under), panelMaxHeight + m.under)
+    }
 
     var body: some View {
         ZStack(alignment: alignment) {
@@ -206,12 +194,20 @@ struct RootView: View {
                 .fixedSize()
                 .hidden()
                 .onGeometryChange(for: CGSize.self) { $0.size } action: { barSize = $0 }
+            if state.expanded {
+                PanelView(topInset: m.under, measuring: true)
+                    .frame(width: panelWidth)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .hidden()
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { panelHeight = $0 }
+            }
             island
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .environment(\.colorScheme, .dark)   // white type on every surface
         .animation(islandSpring, value: key)
         .animation(islandSpring, value: barSize)
+        .animation(islandSpring, value: panelHeight)
     }
 
     private var alignment: Alignment {
@@ -254,8 +250,7 @@ struct RootView: View {
         case .toast:
             return CGSize(width: Metrics.toastWidth, height: ToastView.height + m.under)
         case .panel:
-            let s = edge.isVertical ? Metrics.sidePanelSize : Metrics.panelSize
-            return CGSize(width: s.width, height: s.height + m.under)
+            return CGSize(width: panelWidth, height: panelFit)
         case .strip:
             return barSize == .zero ? CGSize(width: m.notchWidth, height: m.thickness) : barSize
         case .idle:
@@ -279,7 +274,10 @@ struct RootView: View {
             .shadow(color: .black.opacity(lifted ? 0.4 : 0), radius: lifted ? 18 : 0, y: lifted ? 8 : 0)
             .contentShape(shape)
             .onTapGesture {
-                if let toast = state.toast {
+                if let toast = state.toast, toast.kind == .update {
+                    UpdateChecker.shared.download()
+                    state.dismissToast()
+                } else if let toast = state.toast {
                     state.focusTerminal(pid: toast.pid, tty: toast.tty)
                 } else if !state.expanded {
                     // a click on the closed island opens it and keeps it open;
@@ -327,9 +325,8 @@ struct RootView: View {
                 .padding(.top, m.under)
                 .transition(reveal)
         case .panel:
-            let s = edge.isVertical ? Metrics.sidePanelSize : Metrics.panelSize
             PanelView(topInset: m.under)
-                .frame(width: s.width, height: s.height + m.under)
+                .frame(width: panelWidth, height: panelFit)
                 .transition(reveal)
         case .strip:
             BarView(m: m)
@@ -383,15 +380,19 @@ struct BarView: View {
 
     @ViewBuilder private func horizontal(now: Date) -> some View {
         if m.realNotch {
-            // around a camera housing the halves take what they need
-            NotchSplit(gap: m.notchWidth + 12 * m.scale) {
+            // around a camera housing: the text runs from the left edge up to the
+            // camera, the timer sits against the right edge, both halves set by
+            // the size and width sliders
+            HStack(spacing: 0) {
                 HStack(spacing: 7 * m.scale) { lead(now: now) }
+                    .frame(width: m.notchSide, alignment: .leading)
+                Color.clear.frame(width: m.notchWidth + 12 * m.scale)
                 HStack(spacing: 7 * m.scale) { trail(now: now) }
+                    .fixedSize()
+                    .frame(width: m.notchSide, alignment: .trailing)
             }
             .padding(.horizontal, m.sideInset)
-            .frame(minWidth: m.notchWidth)
             .frame(height: m.thickness)
-            .fixedSize()
         } else {
             // a set length, so the island does not jump from command to command:
             // the text gives way, the timer and counts never do
@@ -546,6 +547,8 @@ struct BarView: View {
 struct PanelView: View {
     @ObservedObject var state = AppState.shared
     var topInset: CGFloat = 0
+    /// The off-screen copy RootView sizes the island by: all rows, no scroll.
+    var measuring = false
     @State private var hovered: String?
 
     var body: some View {
@@ -558,14 +561,18 @@ struct PanelView: View {
                 callout.padding(.bottom, 10)
             }
 
-            TimelineView(.periodic(from: .now, by: 1)) { context in
-                // scrolls only when the rows do not fit
-                ViewThatFits(in: .vertical) {
-                    list(now: context.date)
-                    ScrollView { list(now: context.date) }.scrollIndicators(.never)
+            if measuring {
+                list(now: Date())
+            } else {
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    // scrolls only when the rows do not fit
+                    ViewThatFits(in: .vertical) {
+                        list(now: context.date)
+                        ScrollView { list(now: context.date) }.scrollIndicators(.never)
+                    }
                 }
             }
-            Spacer(minLength: 0)
+            Spacer(minLength: measuring ? 12 : 0)
             footer
         }
         .padding(.horizontal, 22)
@@ -814,7 +821,7 @@ struct ToastView: View {
         let t = state.toast
         let kind = t?.kind ?? .success
         let tint: Color = switch kind {
-        case .success: ok
+        case .success, .update: ok
         case .failure: fail
         case .attention: amber
         case .prod: .white
@@ -824,6 +831,7 @@ struct ToastView: View {
         case .failure: "xmark"
         case .attention: "hand.raised.fill"
         case .prod: "exclamationmark.triangle.fill"
+        case .update: "arrow.down"
         }
         return HStack(spacing: 12) {
             Image(systemName: symbol)

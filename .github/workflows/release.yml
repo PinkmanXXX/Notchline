@@ -105,7 +105,7 @@ jobs:
             Или одной командой — тогда этот шаг не нужен:
 
             ```sh
-            curl -fsSL https://raw.githubusercontent.com/PinkmanXXX/notchline/main/scripts/install.sh | bash
+            curl -fsSL https://raw.githubusercontent.com/PinkmanXXX/Notchline/main/scripts/install.sh | bash
             ```
 
       - uses: actions/upload-artifact@v4

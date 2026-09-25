@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Notchline installer.
-#   curl -fsSL https://raw.githubusercontent.com/PinkmanXXX/notchline/main/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/PinkmanXXX/Notchline/main/scripts/install.sh | bash
 set -euo pipefail
 
-REPO="PinkmanXXX/notchline"
+REPO="PinkmanXXX/Notchline"
 APP="Notchline"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"; hdiutil detach "/Volumes/$APP" -quiet 2>/dev/null || true' EXIT

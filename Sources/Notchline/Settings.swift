@@ -74,6 +74,16 @@ struct Prefs: Codable {
     /// Recent commands survive a restart, in a file only this user can read.
     var keepHistory: Bool = true
 
+    // what is announced with a toast (and a sound, and a system notification)
+    var notifyDone: Bool = true
+    var notifyFailed: Bool = true
+    var notifyWaiting: Bool = true
+    var notifyAgentDone: Bool = true
+    var notifyTasks: Bool = true
+    var notifyUpdates: Bool = true
+    /// Once an hour, a look at the latest release on GitHub.
+    var checkUpdates: Bool = true
+
     init() {}
 
     /// Every field is optional on disk, so adding a setting never resets the others.
@@ -98,6 +108,13 @@ struct Prefs: Codable {
         guardSources = (try? c.decode([EnvKind].self, forKey: .guardSources)) ?? d.guardSources
         guardAnnounce = (try? c.decode(Bool.self, forKey: .guardAnnounce)) ?? d.guardAnnounce
         keepHistory = (try? c.decode(Bool.self, forKey: .keepHistory)) ?? d.keepHistory
+        notifyDone = (try? c.decode(Bool.self, forKey: .notifyDone)) ?? d.notifyDone
+        notifyFailed = (try? c.decode(Bool.self, forKey: .notifyFailed)) ?? d.notifyFailed
+        notifyWaiting = (try? c.decode(Bool.self, forKey: .notifyWaiting)) ?? d.notifyWaiting
+        notifyAgentDone = (try? c.decode(Bool.self, forKey: .notifyAgentDone)) ?? d.notifyAgentDone
+        notifyTasks = (try? c.decode(Bool.self, forKey: .notifyTasks)) ?? d.notifyTasks
+        notifyUpdates = (try? c.decode(Bool.self, forKey: .notifyUpdates)) ?? d.notifyUpdates
+        checkUpdates = (try? c.decode(Bool.self, forKey: .checkUpdates)) ?? d.checkUpdates
     }
 }
 

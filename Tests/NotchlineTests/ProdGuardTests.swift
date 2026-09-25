@@ -141,3 +141,14 @@ final class TrackedCommandTests: XCTestCase {
         XCTAssertEqual(program("RUST_LOG=debug ./target/app"), "app")
     }
 }
+
+final class UpdateCheckerTests: XCTestCase {
+    func testVersionsCompareAsNumbers() {
+        XCTAssertTrue(UpdateChecker.isNewer("1.1", than: "1.0"))
+        XCTAssertTrue(UpdateChecker.isNewer("1.10", than: "1.9"))
+        XCTAssertTrue(UpdateChecker.isNewer("2.0", than: "1.9.9"))
+        XCTAssertFalse(UpdateChecker.isNewer("1.0", than: "1.0"))
+        XCTAssertFalse(UpdateChecker.isNewer("1.0", than: "1.0.0"))
+        XCTAssertFalse(UpdateChecker.isNewer("0.9", than: "1.0"))
+    }
+}

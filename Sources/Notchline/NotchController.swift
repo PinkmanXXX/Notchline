@@ -47,9 +47,11 @@ struct Metrics {
     /// scales it with everything else; width changes the proportion.
     var stripLength: CGFloat { max(notchWidth, 290 * scale * widthScale) }
 
-    /// Beside a real notch the halves size to their text, so the command is
-    /// cut by characters there; elsewhere it gives way to the set length.
-    var commandLimit: Int { realNotch ? max(10, Int((26 * widthScale).rounded())) : 120 }
+    /// Beside a real notch, the room on each side of the camera.
+    var notchSide: CGFloat { 125 * scale * widthScale }
+
+    /// Commands are shortened by the layout to fit; this only bounds the string.
+    var commandLimit: Int { 120 }
     var thickness: CGFloat { realNotch ? max(geometry.topInset, 32 * scale) : 32 * scale }
     /// Space the expanded content leaves free for the housing.
     var under: CGFloat { realNotch ? geometry.topInset : 0 }

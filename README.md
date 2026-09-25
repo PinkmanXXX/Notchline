@@ -4,7 +4,7 @@
 
 **Долгие команды, скрипты и ИИ-агенты — прямо в вырезе Mac**
 
-[![Скачать](https://img.shields.io/github/v/release/PinkmanXXX/notchline?label=скачать&color=3fb950)](https://github.com/PinkmanXXX/notchline/releases/latest/download/Notchline.dmg)
+[![Скачать](https://img.shields.io/github/v/release/PinkmanXXX/Notchline?label=скачать&color=3fb950)](https://github.com/PinkmanXXX/Notchline/releases/latest/download/Notchline.dmg)
 [![macOS](https://img.shields.io/badge/macOS-14%2B-3fb950)](#установка)
 [![Apple Silicon и Intel](https://img.shields.io/badge/Apple%20Silicon%20и%20Intel-3fb950)](#установка)
 
@@ -27,7 +27,7 @@
 
 <div align="center">
 
-### [⬇ Скачать Notchline для Mac](https://github.com/PinkmanXXX/notchline/releases/latest/download/Notchline.dmg)
+### [⬇ Скачать Notchline для Mac](https://github.com/PinkmanXXX/Notchline/releases/latest/download/Notchline.dmg)
 
 macOS 14 и новее · Apple Silicon и Intel · бесплатно
 
@@ -44,12 +44,14 @@ macOS 14 и новее · Apple Silicon и Intel · бесплатно
 Или одной командой в терминале, без шага 2:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/PinkmanXXX/notchline/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/PinkmanXXX/Notchline/main/scripts/install.sh | bash
 ```
 
 > [!NOTE]
 > Notchline ничего не отправляет в интернет: он слушает только ваш терминал
-> через локальный сокет, доступный одному вашему пользователю.
+> через локальный сокет, доступный одному вашему пользователю. Единственный
+> запрос наружу — раз в час он смотрит на GitHub, не вышла ли новая версия;
+> это отключается в «О программе».
 
 ## Возможности
 
@@ -64,6 +66,9 @@ curl -fsSL https://raw.githubusercontent.com/PinkmanXXX/notchline/main/scripts/i
 - **История.** При наведении — что идёт сейчас и что недавно закончилось:
   папка, длительность, код выхода
 - **Любой край.** Сверху, снизу или сбоку экрана, на одном мониторе или на всех
+- **Уведомления по вкусу.** Отдельно включается, о чём сообщать: успех, ошибка, агент
+  ждёт ответа, вход в прод, новая версия — тостом, звуком или в Центр уведомлений
+- **Обновления.** Раз в час проверяет новую версию и предлагает её скачать
 - **Три языка.** Русский, английский и китайский
 
 ## ИИ-агенты

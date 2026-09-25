@@ -47,6 +47,9 @@ struct SettingsView: View {
             AgentsTab()
                 .tabItem { Label(L10n.t("agents"), systemImage: "sparkles") }
                 .tag(SettingsTab.agents)
+            NotificationsTab()
+                .tabItem { Label(L10n.t("notifications"), systemImage: "bell.badge") }
+                .tag(SettingsTab.notifications)
             AboutTab()
                 .tabItem { Label(L10n.t("about"), systemImage: "info.circle") }
                 .tag(SettingsTab.about)
@@ -217,11 +220,6 @@ private struct TerminalTab: View {
                     LabeledContent(L10n.t("showAfter"),
                                    value: L10n.t("seconds", ["n": String(Int(state.prefs.showAfter))]))
                 }
-                Stepper(value: prefBinding(\.notifyAfter), in: 5...600, step: 5) {
-                    LabeledContent(L10n.t("notifyAfter"),
-                                   value: L10n.t("seconds", ["n": String(Int(state.prefs.notifyAfter))]))
-                }
-                Toggle(L10n.t("sound"), isOn: prefBinding(\.sound))
                 Toggle(isOn: Binding(
                     get: { state.prefs.keepHistory },
                     set: { v in
@@ -233,12 +231,6 @@ private struct TerminalTab: View {
                         Text(L10n.t("keepHistoryHint")).font(.caption).foregroundStyle(.secondary)
                     }
                 }
-                Toggle(L10n.t("systemNotifications"), isOn: Binding(
-                    get: { state.prefs.systemNotifications },
-                    set: { new in
-                        var p = state.prefs; p.systemNotifications = new; state.prefs = p
-                        if new { state.requestNotificationPermission() }
-                    }))
             }
 
             Section(L10n.t("cli")) {
@@ -336,7 +328,6 @@ private struct GuardTab: View {
                         }
                     }
                 }
-                Toggle(L10n.t("guardAnnounce"), isOn: guardBinding(\.guardAnnounce))
             }
 
             Section(L10n.t("now")) {
@@ -475,9 +466,56 @@ private struct AgentsTab: View {
     }
 }
 
+// MARK: notifications
+
+private struct NotificationsTab: View {
+    @ObservedObject var state = AppState.shared
+
+    var body: some View {
+        Form {
+            Section {
+                Text(L10n.t("notificationsIntro")).font(.callout)
+            }
+
+            Section(L10n.t("notifyAbout")) {
+                toggle("notifyDone", \.notifyDone)
+                toggle("notifyFailed", \.notifyFailed)
+                Stepper(value: prefBinding(\.notifyAfter), in: 5...600, step: 5) {
+                    LabeledContent(L10n.t("notifyAfter"),
+                                   value: L10n.t("seconds", ["n": String(Int(state.prefs.notifyAfter))]))
+                }
+                toggle("notifyWaiting", \.notifyWaiting)
+                toggle("notifyAgentDone", \.notifyAgentDone)
+                toggle("notifyTasks", \.notifyTasks)
+                toggle("guardAnnounce", \.guardAnnounce)
+                toggle("notifyUpdates", \.notifyUpdates)
+            }
+
+            Section(L10n.t("notifyHow")) {
+                Toggle(L10n.t("sound"), isOn: prefBinding(\.sound))
+                Toggle(L10n.t("systemNotifications"), isOn: Binding(
+                    get: { state.prefs.systemNotifications },
+                    set: { new in
+                        var p = state.prefs; p.systemNotifications = new; state.prefs = p
+                        if new { state.requestNotificationPermission() }
+                    }))
+                Text(L10n.t("systemNotificationsHint")).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private func toggle(_ key: String, _ path: WritableKeyPath<Prefs, Bool>) -> some View {
+        Toggle(L10n.t(key), isOn: prefBinding(path))
+    }
+}
+
 // MARK: about
 
 private struct AboutTab: View {
+    @ObservedObject var updates = UpdateChecker.shared
+    @ObservedObject var state = AppState.shared
+
     var body: some View {
         VStack(spacing: 14) {
             Spacer()
@@ -486,10 +524,49 @@ private struct AboutTab: View {
             }
             Text("Notchline").font(.title.bold())
             Text(L10n.t("tagline")).foregroundStyle(.secondary)
-            Text(L10n.t("version", ["v": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"]))
+            Text(L10n.t("version", ["v": updates.current]))
                 .font(.caption).foregroundStyle(.secondary)
+            Link(destination: UpdateChecker.repository) {
+                Label("github.com/PinkmanXXX/Notchline", systemImage: "arrow.up.right.square")
+            }
+            .font(.callout)
+
+            VStack(spacing: 8) {
+                updateStatus
+                HStack(spacing: 10) {
+                    if case .available = updates.status {
+                        Button(L10n.t("updateDownload")) { updates.download() }
+                            .buttonStyle(.borderedProminent)
+                    }
+                    Button(L10n.t("checkUpdates")) { Task { await updates.check(manual: true) } }
+                        .disabled(updates.status == .checking)
+                }
+                Toggle(L10n.t("checkUpdatesAuto"), isOn: prefBinding(\.checkUpdates))
+                    .toggleStyle(.checkbox)
+                    .font(.caption)
+            }
+            .padding(.top, 6)
             Spacer()
         }
         .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder private var updateStatus: some View {
+        switch updates.status {
+        case .idle:
+            EmptyView()
+        case .checking:
+            HStack(spacing: 6) { ProgressView().controlSize(.small); Text(L10n.t("updateChecking")) }
+                .font(.callout).foregroundStyle(.secondary)
+        case .upToDate:
+            Label(L10n.t("updateNone"), systemImage: "checkmark.circle.fill")
+                .font(.callout).foregroundStyle(.green)
+        case .available(let version, _, _):
+            Label(L10n.t("updateAvailable", ["v": version]), systemImage: "arrow.down.circle.fill")
+                .font(.callout.weight(.semibold)).foregroundStyle(.blue)
+        case .failed:
+            Label(L10n.t("updateFailed"), systemImage: "exclamationmark.triangle.fill")
+                .font(.callout).foregroundStyle(.orange)
+        }
     }
 }

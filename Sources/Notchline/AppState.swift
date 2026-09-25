@@ -35,7 +35,7 @@ final class AppState: ObservableObject {
     @Published var settingsTab: SettingsTab = .general
 
     struct Toast: Equatable {
-        enum Kind { case success, failure, prod, attention }
+        enum Kind { case success, failure, prod, attention, update }
         var id = UUID()
         var title: String
         var subtitle: String
@@ -179,7 +179,7 @@ final class AppState: ObservableObject {
                 if recent.count > recentLimit { recent.removeLast(recent.count - recentLimit) }
             }
             // a script asked for this, so it is announced whatever its length
-            announce(record, detail: u.detail)
+            if agent ? prefs.notifyAgentDone : prefs.notifyTasks { announce(record, detail: u.detail) }
 
         default:   // start, progress, status
             var task = i.map { tasks[$0] } ?? ScriptTask(id: u.id, pid: u.pid, tty: u.tty,
@@ -198,7 +198,7 @@ final class AppState: ObservableObject {
             if let i { tasks.remove(at: i) }
             tasks.insert(task, at: 0)
             startTicker()
-            if task.waiting && !wasWaiting { askForAttention(task) }
+            if task.waiting && !wasWaiting && prefs.notifyWaiting { askForAttention(task) }
         }
     }
 
@@ -235,7 +235,9 @@ final class AppState: ObservableObject {
             if recent.count > recentLimit { recent.removeLast(recent.count - recentLimit) }
         }
         refreshVisible()
-        if duration >= prefs.notifyAfter { announce(cmd) }
+        if duration >= prefs.notifyAfter && (cmd.succeeded ? prefs.notifyDone : prefs.notifyFailed) {
+            announce(cmd)
+        }
     }
 
     // MARK: ticking
@@ -350,6 +352,15 @@ final class AppState: ObservableObject {
         }
     }
 
+    func announceUpdate(_ version: String) {
+        guard prefs.notifyUpdates else { return }
+        let shown = Toast(title: L10n.t("updateAvailable", ["v": version]), subtitle: L10n.t("updateTap"),
+                          trailing: "", kind: .update, pid: 0)
+        toast = shown
+        NotchController.shared.showToast()
+        dismissLater(shown)
+    }
+
     private func announceProd(_ items: [EnvItem]) {
         let shown = Toast(title: L10n.t("prodEntered"), subtitle: items.map(\.text).joined(separator: " · "),
                           trailing: "", kind: .prod, pid: activeShell ?? 0)
@@ -447,6 +458,11 @@ final class AppState: ObservableObject {
         }
 
         dismissLater(shown)
+    }
+
+    func dismissToast() {
+        toast = nil
+        NotchController.shared.layout(animated: true)
     }
 
     /// Tapping a toast or a row takes you to the terminal it came from.
@@ -621,5 +637,5 @@ extension AppState {
 #endif
 
 enum SettingsTab: Hashable {
-    case general, terminal, prodGuard, agents, about
+    case general, terminal, prodGuard, agents, notifications, about
 }
